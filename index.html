@@ -16,8 +16,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* Thay 2 giá trị dưới đây bằng Project URL và public/anon key từ Supabase. Không dùng service_role key. */
-const SUPABASE_URL="PASTE_SUPABASE_PROJECT_URL_HERE";
-const SUPABASE_ANON_KEY="PASTE_SUPABASE_ANON_KEY_HERE";
+const SUPABASE_URL="sb_publishable_P8pVLObBSK6eZqr2pYJZFg_mzATMmiI";
+const SUPABASE_ANON_KEY="sb_secret_OTPrUT-l7I8Ac9O9eohA1w_hBPl43q9";
 const ready=SUPABASE_URL.startsWith("https://")&&!SUPABASE_URL.includes("PASTE_")&&!SUPABASE_ANON_KEY.includes("PASTE_");
 const db=ready?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 let session=null,profile=null,products=[],cat="all",tab="products";
