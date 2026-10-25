@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070510">
+<title>Phần Mềm.store — Cửa Hàng Mod & Software Cao Cấp</title>
+
+<!-- Font & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root {
+  --bg: #070510;
+  --bg-card: rgba(18, 14, 36, 0.75);
+  --panel: #110d28;
+  --line: rgba(168, 85, 247, 0.2);
+  --line-hover: rgba(168, 85, 247, 0.5);
+  --text: #f5f3ff;
+  --muted: #948eb0;
+  --accent: #a855f7;
+  --accent-glow: rgba(168, 85, 247, 0.4);
+  --cyan: #38bdf8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --gold: #f59e0b;
+  --radius: 16px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; line-height: 1.6; }
+
+/* CYBERPUNK / GLASSMORPHISM BACKGROUND */
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background: 
+    radial-gradient(circle at 15% 15%, rgba(147, 51, 234, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 85% 25%, rgba(56, 189, 248, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 45%);
+}
+
+.wrap { max-width: 1240px; margin: auto; padding: 0 20px; }
+
+/* HEADER & NAVBAR */
+header { position: sticky; top: 0; background: rgba(7, 5, 16, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); z-index: 100; }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 15px; }
+.brand { font-weight: 900; font-size: 1.45rem; letter-spacing: -0.03em; color: #fff; display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand i { color: var(--accent); filter: drop-shadow(0 0 10px var(--accent)); }
+.brand span { color: var(--cyan); }
+
+.navlinks { display: flex; gap: 12px; align-items: center; }
+
+/* BUTTONS */
+button, .btn {
+  font-weight: 700; font-size: 0.88rem; border-radius: 12px; padding: 10px 18px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition);
+  text-decoration: none; color: #fff; background: linear-gradient(135deg, #9333ea, #a855f7); box-shadow: 0 4px 20px var(--accent-glow);
+}
+button:hover, .btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 6px 25px rgba(168, 85, 247, 0.6); }
+button.secondary { background: rgba(255, 255, 255, 0.05); color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+button.secondary:hover { background: rgba(168, 85, 247, 0.15); border-color: var(--accent); }
+button.danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+button.success { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+/* WALLET CHIP */
+.wallet-chip { display: flex; align-items: center; gap: 10px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.03); font-size: 0.82rem; }
+.wallet-chip strong { color: #c084fc; font-size: 0.92rem; }
+
+/* MOBILE SIDEBAR */
+.mobile-toggle { display: none; background: transparent; border: 1px solid var(--line); padding: 8px 12px; font-size: 1.2rem; color: #fff; }
+.sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 998; opacity: 0; pointer-events: none; transition: var(--transition); }
+.sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+.mobile-sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #0d0a1d; border-left: 1px solid var(--line); z-index: 999; padding: 24px; transition: var(--transition); display: flex; flex-direction: column; gap: 15px; }
+.mobile-sidebar.active { right: 0; }
+
+/* HERO SECTION */
+.hero { text-align: center; padding: 50px 0 30px; max-width: 820px; margin: auto; }
+.pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(168, 85, 247, 0.4); padding: 6px 16px; border-radius: 99px; color: #c084fc; background: rgba(147, 51, 234, 0.1); font-size: 0.82rem; font-weight: 700; margin-bottom: 20px; }
+.hero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 900; line-height: 1.15; letter-spacing: -0.04em; margin-bottom: 18px; }
+.hero h1 .gradient { background: linear-gradient(120deg, #c084fc, #a855f7, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.hero p { color: var(--muted); font-size: 1.05rem; margin-bottom: 20px; }
+
+/* INPUTS & FORM */
+input, textarea, select { width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: rgba(10, 7, 24, 0.8); color: var(--text); border-radius: 12px; outline: none; transition: var(--transition); font-size: 0.9rem; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); }
+label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
+
+/* FILTER & GRID */
+.filter-bar { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; background: var(--bg-card); padding: 12px 18px; border-radius: 16px; border: 1px solid var(--line); margin-bottom: 30px; }
+.cat-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.cat-btn { background: transparent; border: 1px solid transparent; color: var(--muted); padding: 8px 16px; border-radius: 10px; font-weight: 600; }
+.cat-btn.active { background: rgba(168, 85, 247, 0.2); color: #fff; border-color: var(--accent); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+.card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; transition: var(--transition); display: flex; flex-direction: column; backdrop-filter: blur(10px); }
+.card:hover { transform: translateY(-4px); border-color: var(--line-hover); box-shadow: 0 12px 35px rgba(147, 51, 234, 0.25); }
+
+.product-img { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #181330; margin-bottom: 14px; position: relative; }
+.product-img img { width: 100%; height: 100%; object-fit: cover; }
+.badge-cat { position: absolute; top: 10px; left: 10px; background: rgba(7, 5, 16, 0.8); backdrop-filter: blur(5px); padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; color: var(--cyan); border: 1px solid var(--line); }
+
+.card-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; color: #fff; }
+.card-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.buyrow { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: auto; }
+.price { font-size: 1.25rem; font-weight: 900; color: #c084fc; }
+
+/* PANELS & TABLES */
+.panel { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 30px; backdrop-filter: blur(10px); }
+.table-wrap { overflow-x: auto; margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left; }
+th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 700; background: rgba(255,255,255,0.02); }
+
+/* MODALS */
+.modal-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(5, 3, 14, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-backdrop[hidden] { display: none !important; }
+.modal-window { width: min(560px, 100%); background: #0d0a1d; border: 1px solid var(--line); border-radius: 24px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+
+/* TOAST */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast { padding: 14px 20px; border-radius: 12px; background: #16122c; color: #fff; border: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 0.9rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: fadeIn 0.3s cubic-bezier(0.4,0,0.2,1); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+.badge-pending { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
+.badge-approved { background: rgba(34, 197, 94, 0.2); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.4); }
+.badge-rejected { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+
+.hidden { display: none !important; }
+
+@media (max-width: 768px) {
+  .navlinks.desktop { display: none; }
+  .mobile-toggle { display: block; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="wrap nav">
+    <a href="#" class="brand"><i class="fa-solid fa-cube"></i> Phần Mềm<span>.store</span></a>
+    
+    <!-- Desktop Nav -->
+    <div class="navlinks desktop">
+      <button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+      <button class="secondary" onclick="openDepositModal()"><i class="fa-solid fa-bolt"></i> Nạp tiền</button>
+
+      <div id="walletChip" class="wallet-chip hidden">
+        <i class="fa-solid fa-wallet" style="color:var(--accent)"></i>
+        <div>
+          <strong id="headerBalance">0 ₫</strong>
+          <div id="headerUsername" style="font-size:0.7rem; color:var(--muted)">Tài khoản</div>
+        </div>
+      </div>
+
+      <button id="accountBtn" onclick="session?toggleUserArea():showAuth()">
+        <i class="fa-solid fa-user"></i> <span>Đăng nhập</span>
+      </button>
+    </div>
+
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleMobileSidebar()"><i class="fa-solid fa-bars"></i></button>
+  </div>
+</header>
+
+<!-- MOBILE SIDEBAR -->
+<div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
+<div id="mobileSidebar" class="mobile-sidebar">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <span class="brand" style="font-size:1.2rem;"><i class="fa-solid fa-cube"></i> Phần Mềm<span>.store</span></span>
+    <button class="secondary" onclick="toggleMobileSidebar()" style="padding:6px 10px;">✕</button>
+  </div>
+
+  <div id="mWalletChip" class="wallet-chip hidden" style="justify-content:center; padding:10px;">
+    <i class="fa-solid fa-wallet" style="color:var(--accent); font-size:1.2rem;"></i>
+    <div>
+      <strong id="mHeaderBalance">0 ₫</strong>
+      <div id="mHeaderUsername" style="font-size:0.75rem; color:var(--muted)">Tài khoản</div>
+    </div>
+  </div>
+
+  <button class="secondary" onclick="toggleMobileSidebar(); window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+  <button class="secondary" onclick="toggleMobileSidebar(); openDepositModal();"><i class="fa-solid fa-bolt"></i> Nạp Tiền Ngay</button>
+  <button id="mAccountBtn" onclick="toggleMobileSidebar(); session?toggleUserArea():showAuth();">
+    <i class="fa-solid fa-user"></i> <span>Đăng Nhập</span>
+  </button>
+</div>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="pill"><i class="fa-solid fa-sparkles"></i> PHIÊN BẢN CẬP NHẬT MỚI NHẤT 2026</div>
+    <h1>Cung Cấp Mod Menu & <br><span class="gradient">Công Cụ Trò Chơi Cao Cấp</span></h1>
+    <p>Hệ thống tự động 100%, tự động cộng tiền khi nạp & giao Key / File nhận ngay lập tức!</p>
+  </section>
+
+  <!-- AUTH BOX -->
+  <div id="authBox" class="panel hidden" style="max-width:480px; margin:0 auto 30px;">
+    <h2 id="authTitle" style="font-weight:800; margin-bottom:10px;"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</h2>
+    <label>Tên tài khoản</label>
+    <input id="authUsername" placeholder="Nhập tên tài khoản..." maxlength="24">
+    <label>Mật khẩu</label>
+    <input id="authPassword" type="password" placeholder="Nhập mật khẩu...">
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button id="authSubmitBtn" onclick="submitAuth()" style="flex:1">Tiếp tục</button>
+      <button class="secondary" onclick="toggleAuthMode()">Đổi chế độ</button>
+      <button class="secondary" onclick="hideAuth()">Đóng</button>
+    </div>
+  </div>
+
+  <!-- USER AREA -->
+  <section id="userArea" class="panel hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 id="welcome" style="font-weight:800; font-size:1.4rem">Tài khoản của bạn</h2>
+        <p class="muted" style="font-size:0.85rem">Quản lý số dư và lịch sử giao dịch cá nhân</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button id="adminShortcut" class="success hidden" onclick="$('admin').classList.remove('hidden'); $('admin').scrollIntoView({behavior:'smooth'});"><i class="fa-solid fa-user-shield"></i> Bảng Quản Trị Admin</button>
+        <button class="danger" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Lịch sử đơn hàng -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <h3><i class="fa-solid fa-bag-shopping" style="color:var(--cyan)"></i> Lịch Sử Đơn Hàng Đã Mua (Key / Link File)</h3>
+        <div id="myOrders" style="font-size:0.85rem; margin-top:10px;">Đang tải danh sách...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS SECTION -->
+  <section id="products" style="padding: 10px 0 60px;">
+    <div class="filter-bar">
+      <div class="cat-btn-group">
+        <button class="cat-btn active" data-cat="Tất Cả" onclick="setCategory('Tất Cả')">Tất Cả</button>
+        <button class="cat-btn" data-cat="iOS" onclick="setCategory('iOS')">iOS</button>
+        <button class="cat-btn" data-cat="Android" onclick="setCategory('Android')">Android</button>
+        <button class="cat-btn" data-cat="PC" onclick="setCategory('PC')">PC</button>
+      </div>
+      <div class="search-box" style="flex:1; max-width:300px;">
+        <input id="search" placeholder="🔎 Tìm phần mềm..." oninput="renderProducts()">
+      </div>
+    </div>
+
+    <div id="productList" class="grid"></div>
+  </section>
+
+  <!-- ADMIN PANEL -->
+  <section id="admin" class="panel hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2><i class="fa-solid fa-user-shield" style="color:var(--accent)"></i> Quản Trị Cửa Hàng</h2>
+      <button class="secondary" onclick="$('admin').classList.add('hidden')">Đóng Admin</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+      <button class="secondary" onclick="adminTab('product')">Quản Lý Sản Phẩm</button>
+      <button class="secondary" onclick="adminTab('deposits')">Duyệt Nạp Tiền</button>
+    </div>
+
+    <!-- Admin Product Tab -->
+    <div id="adminProduct">
+      <h3 style="margin-bottom:10px;">Thêm / Chỉnh Sửa Sản Phẩm</h3>
+      <input id="editId" type="hidden">
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:15px;">
+        <div>
+          <label>Tên sản phẩm</label>
+          <input id="pName" placeholder="Ví dụ: AIMLOCK VIP">
+        </div>
+        <div>
+          <label>Danh mục (HĐH)</label>
+          <select id="pCategory">
+            <option value="iOS">iOS</option>
+            <option value="Android">Android</option>
+            <option value="PC">PC</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Mô tả ngắn</label>
+      <textarea id="pDesc" rows="2" placeholder="Mô tả tính năng..."></textarea>
+
+      <label style="color:var(--cyan); font-weight:700;">Nội dung giao cho khách (Key, Link File, Link Drive...)</label>
+      <textarea id="pContent" rows="3" placeholder="Dán mã Key hoặc Link download tại đây..."></textarea>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr; gap:15px;">
+        <div>
+          <label>Giá bán (VNĐ)</label>
+          <input id="pPrice" type="number" min="0" value="100000">
+        </div>
+        <div>
+          <label>URL Hình ảnh</label>
+          <input id="pImage" placeholder="https://i.imgur.com/...">
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:15px;">
+        <button onclick="saveProduct()"><i class="fa-solid fa-floppy-disk"></i> Lưu Sản Phẩm</button>
+        <button class="secondary" onclick="clearProductForm()">Hủy Form</button>
+      </div>
+
+      <h3 style="margin-top:30px;">Danh Sách Sản Phẩm</h3>
+      <div id="adminProducts" class="table-wrap"></div>
+    </div>
+
+    <!-- Admin Deposits Tab -->
+    <div id="adminDeposits" class="hidden">
+      <h3>Danh Sách Yêu Cầu Nạp Tiền</h3>
+      <div id="allDeposits" class="table-wrap"></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- MODAL GIAO SẢN PHẨM SAU KHI MUA -->
+<div id="deliveredModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeDeliveredModal()">
+  <div class="modal-window">
+    <div class="modal-head">
+      <h2 style="color:var(--green); font-size:1.25rem;"><i class="fa-solid fa-circle-check"></i> Mua Hàng Thành Công!</h2>
+      <button class="secondary" onclick="closeDeliveredModal()" style="padding:4px 10px;">✕</button>
+    </div>
+    <p style="font-size:0.88rem; color:var(--muted); margin-bottom:12px;">Dưới đây là Key / File download của sản phẩm bạn vừa mua:</p>
+
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--accent); border-radius:12px; padding:15px; margin-bottom:20px;">
+      <textarea id="deliveredContent" readonly rows="4" style="background:transparent; border:none; color:#86efac; font-weight:700; font-family:monospace; resize:none; font-size:0.95rem;"></textarea>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button style="flex:1;" onclick="copyDeliveredContent()"><i class="fa-solid fa-copy"></i> Sao Chép Nội Dung</button>
+      <button class="secondary" onclick="closeDeliveredModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NẠP TIỀN VIA QR -->
+<div id="depositModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeDepositModal()">
+  <div class="modal-window">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-qrcode" style="color:var(--cyan)"></i> Nạp Tiền Vào Ví</h2>
+      <button class="secondary" onclick="closeDepositModal()" style="padding:4px 10px;">✕</button>
+    </div>
+    
+    <label>Nhập số tiền muốn nạp (VNĐ)</label>
+    <input id="depositAmount" type="number" min="10000" step="10000" value="50000" oninput="updateQrCode()">
+
+    <div style="text-align:center; margin:20px 0; background:rgba(255,255,255,0.03); padding:15px; border-radius:16px; border:1px solid var(--line);">
+      <img id="qrImage" src="" alt="QR Nạp Tiền" style="max-width:220px; border-radius:12px; border:2px solid var(--accent);">
+      <p style="font-size:0.8rem; color:var(--muted); margin-top:8px;">Quét mã VietQR bằng App Ngân Hàng bất kỳ</p>
+    </div>
+
+    <label>Nội dung chuyển khoản (Bắt buộc giữ nguyên)</label>
+    <div style="display:flex; gap:8px;">
+      <input id="qrMemo" readonly style="font-weight:700; color:var(--cyan); font-family:monospace;">
+      <button class="secondary" onclick="navigator.clipboard.writeText($('qrMemo').value); showToast('Đã chép nội dung CK!', 'success');"><i class="fa-solid fa-copy"></i></button>
+    </div>
+
+    <button id="submitDepositBtn" onclick="requestDeposit()" style="width:100%; margin-top:20px;"><i class="fa-solid fa-paper-plane"></i> Gửi Yêu Cầu Xóa / Lên Đơn Nạp</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// SUPABASE CONFIGURATION
+const SUPABASE_URL = "https://rrpogfsoiuwkrubaujvi.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9M2ne0k2IU0-LwUXXeV0mg_jxGaM5tI";
+
+const db = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
+
+let session = null;
+let profile = null;
+let products = [];
+let activeCategory = "Tất Cả";
+let authMode = "login";
+
+const $ = id => document.getElementById(id);
+const money = n => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(n || 0));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function showToast(message, type = "info") {
+  const container = $("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `<i class="fa-solid ${type==='error'?'fa-circle-xmark':'fa-circle-check'}" style="color:${type==='error'?'var(--red)':'var(--green)'}"></i> <span>${esc(message)}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+function toggleMobileSidebar() {
+  $("sidebarBackdrop").classList.toggle("active");
+  $("mobileSidebar").classList.toggle("active");
+}
+
+function showAuth() { $("authBox").classList.remove("hidden"); $("authBox").scrollIntoView({behavior:'smooth'}); }
+function hideAuth() { $("authBox").classList.add("hidden"); }
+function toggleAuthMode() {
+  authMode = authMode === "login" ? "signup" : "login";
+  $("authTitle").innerHTML = authMode === "login" ? '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập' : '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+}
+
+function toggleUserArea() { $("userArea").classList.toggle("hidden"); }
+
+// AUTHENTICATION
+async function submitAuth() {
+  const username = $("authUsername").value.trim().toLowerCase();
+  const password = $("authPassword").value;
+  if (!username || !password) return showToast("Vui lòng điền đủ tên và mật khẩu!", "error");
+
+  const email = username + "@accounts.phammem.store";
+  $("authSubmitBtn").disabled = true;
+
+  let r = authMode === "signup" ? 
+    await db.auth.signUp({ email, password, options: { data: { username, display_name: username } } }) :
+    await db.auth.signInWithPassword({ email, password });
+
+  $("authSubmitBtn").disabled = false;
+
+  if (r.error) return showToast(r.error.message, "error");
+  session = r.data.session;
+  await onSignedIn();
+  hideAuth();
+  showToast(authMode === "signup" ? "Đăng ký thành công!" : "Đăng nhập thành công!", "success");
+}
+
+async function logout() {
+  await db.auth.signOut();
+  location.reload();
+}
+
+async function onSignedIn() {
+  const u = session.user;
+  let r = await db.from("profiles").select("*").eq("id", u.id).maybeSingle();
+  profile = r.data;
+
+  // Header update
+  $("accountBtn").innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${esc(profile?.display_name || 'Tài khoản')}</span>`;
+  $("mAccountBtn").innerHTML = `<i class="fa-solid fa-user-check"></i> <span>${esc(profile?.display_name || 'Tài khoản')}</span>`;
+  
+  $("walletChip").classList.remove("hidden");
+  $("mWalletChip").classList.remove("hidden");
+  
+  $("headerBalance").textContent = money(profile?.balance ?? 0);
+  $("mHeaderBalance").textContent = money(profile?.balance ?? 0);
+  $("headerUsername").textContent = profile?.display_name;
+  $("mHeaderUsername").textContent = profile?.display_name;
+
+  $("welcome").textContent = `Chào mừng, ${profile?.display_name}`;
+  $("userArea").classList.remove("hidden");
+
+  if (profile?.role === "admin") {
+    $("adminShortcut").classList.remove("hidden");
+    loadAdmin();
+  }
+  refreshMyData();
+}
+
+async function refreshMyData() {
+  const o = await db.from("orders").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
+  
+  $("myOrders").innerHTML = o.data?.length ? o.data.map(x => `
+    <div style="padding:12px; background:rgba(255,255,255,0.03); border-radius:12px; margin-bottom:10px; border:1px solid var(--line);">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="color:#fff;">${esc(x.product_name)}</strong>
+        <span style="color:var(--accent); font-weight:800;">${money(x.total)}</span>
+      </div>
+      <div style="margin-top:8px; background:#070510; padding:10px 14px; border-radius:8px; font-family:monospace; color:#86efac; font-size:0.85rem; border:1px solid rgba(134,239,172,0.2); word-break:break-all;">
+        ${esc(x.content_delivered || 'Đang chờ cấp Key / File')}
+      </div>
+    </div>
+  `).join("") : "Bạn chưa mua sản phẩm nào.";
+}
+
+// PRODUCT LOADING & FILTER
+async function loadProducts() {
+  if (!db) return;
+  const r = await db.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
+  products = r.data || [];
+  renderProducts();
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll(".cat-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === cat));
+  renderProducts();
+}
+
+function renderProducts() {
+  const query = $("search").value.toLowerCase();
+  let filtered = products.filter(p => (activeCategory === "Tất Cả" || p.category === activeCategory) && p.name.toLowerCase().includes(query));
+
+  $("productList").innerHTML = filtered.map(p => `
+    <div class="card">
+      <div class="product-img">
+        <span class="badge-cat">${esc(p.category)}</span>
+        <img src="${p.image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'}">
+      </div>
+      <div class="card-title">${esc(p.name)}</div>
+      <div class="card-desc">${esc(p.description)}</div>
+      <div class="buyrow">
+        <div class="price">${money(p.price)}</div>
+        <button onclick="buyProduct('${p.id}')"><i class="fa-solid fa-cart-shopping"></i> Mua Ngay</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// MUA HÀNG VÀ TRỪ TIỀN
+async function buyProduct(id) {
+  if (!session) return showAuth();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  if ((profile?.balance || 0) < p.price) {
+    return showToast("Số dư không đủ! Vui lòng nạp thêm.", "error");
+  }
+
+  if (confirm(`Xác nhận mua "${p.name}" với giá ${money(p.price)}?`)) {
+    const newBal = profile.balance - p.price;
+    await db.from("profiles").update({ balance: newBal }).eq("id", session.user.id);
+
+    const delivered = p.content || "Cảm ơn bạn đã mua hàng! Hãy liên hệ admin để nhận thêm hỗ trợ.";
+    await db.from("orders").insert({
+      user_id: session.user.id,
+      product_name: p.name,
+      quantity: 1,
+      total: p.price,
+      content_delivered: delivered,
+      status: "Thành công"
+    });
+
+    profile.balance = newBal;
+    $("headerBalance").textContent = money(newBal);
+    $("mHeaderBalance").textContent = money(newBal);
+
+    $("deliveredContent").value = delivered;
+    $("deliveredModal").hidden = false;
+
+    refreshMyData();
+    showToast("Mua sản phẩm thành công!", "success");
+  }
+}
+
+function closeDeliveredModal() { $("deliveredModal").hidden = true; }
+function copyDeliveredContent() {
+  const txt = $("deliveredContent");
+  txt.select();
+  navigator.clipboard.writeText(txt.value);
+  showToast("Đã sao chép Key / Link!", "success");
+}
+
+// DEPOSIT QR SYSTEM
+function openDepositModal() {
+  if (!session) return showAuth();
+  $("depositModal").hidden = false;
+  updateQrCode();
+}
+function closeDepositModal() { $("depositModal").hidden = true; }
+
+function updateQrCode() {
+  const amount = Number($("depositAmount").value) || 50000;
+  const memo = "NAP " + (profile?.display_name || "USER").toUpperCase();
+  $("qrMemo").value = memo;
+
+  // MBBank VietQR Link
+  const qrUrl = `https://img.vietqr.io/image/MB-0359123456-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=PHAM%20MEM%20STORE`;
+  $("qrImage").src = qrUrl;
+}
+
+async function requestDeposit() {
+  const amount = Number($("depositAmount").value);
+  const memo = $("qrMemo").value;
+
+  if (!amount || amount < 10000) return showToast("Số tiền tối thiểu 10,000đ", "error");
+
+  $("submitDepositBtn").disabled = true;
+  await db.from("deposits").insert({
+    user_id: session.user.id,
+    username: profile.display_name,
+    amount: amount,
+    code: memo,
+    status: "Chờ duyệt"
+  });
+
+  $("submitDepositBtn").disabled = false;
+  closeDepositModal();
+  showToast("Đã gửi đơn nạp! Vui lòng chờ Admin duyệt.", "success");
+}
+
+// ADMIN MANAGEMENT
+async function loadAdmin() {
+  adminTab('product');
+}
+
+function adminTab(tab) {
+  $("adminProduct").classList.toggle("hidden", tab !== 'product');
+  $("adminDeposits").classList.toggle("hidden", tab !== 'deposits');
+  if (tab === 'product') renderAdminProducts();
+  if (tab === 'deposits') renderAdminDeposits();
+}
+
+function renderAdminProducts() {
+  $("adminProducts").innerHTML = `
+    <table>
+      <thead><tr><th>Tên</th><th>Giá</th><th>Nội dung (Key/Link)</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        ${products.map(p => `
+          <tr>
+            <td><b>${esc(p.name)}</b></td>
+            <td>${money(p.price)}</td>
+            <td style="font-family:monospace; color:var(--cyan);">${esc(p.content || '-')}</td>
+            <td><button class="secondary" style="padding:4px 8px;" onclick="editProduct('${p.id}')">Sửa</button></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function saveProduct() {
+  const payload = {
+    name: $("pName").value.trim(),
+    category: $("pCategory").value,
+    description: $("pDesc").value.trim(),
+    content: $("pContent").value.trim(),
+    price: Number($("pPrice").value),
+    image_url: $("pImage").value.trim(),
+    active: true
+  };
+
+  const editId = $("editId").value;
+  if (editId) {
+    await db.from("products").update(payload).eq("id", editId);
+  } else {
+    await db.from("products").insert(payload);
+  }
+
+  showToast("Lưu sản phẩm thành công!", "success");
+  clearProductForm();
+  loadProducts();
+}
+
+function clearProductForm() {
+  $("editId").value = ""; $("pName").value = ""; $("pDesc").value = ""; $("pContent").value = ""; $("pPrice").value = "100000"; $("pImage").value = "";
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  $("editId").value = p.id;
+  $("pName").value = p.name;
+  $("pCategory").value = p.category;
+  $("pDesc").value = p.description || "";
+  $("pContent").value = p.content || "";
+  $("pPrice").value = p.price;
+  $("pImage").value = p.image_url || "";
+}
+
+// DUYỆT NẠP TIỀN & CỘNG TIỀN TỰ ĐỘNG
+async function renderAdminDeposits() {
+  const r = await db.from("deposits").select("*").order("created_at", { ascending: false });
+  const deposits = r.data || [];
+
+  $("allDeposits").innerHTML = `
+    <table>
+      <thead><tr><th>Khách hàng</th><th>Số tiền</th><th>Nội dung</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        ${deposits.map(d => `
+          <tr>
+            <td><b>${esc(d.username)}</b></td>
+            <td style="color:var(--green); font-weight:700;">${money(d.amount)}</td>
+            <td><code>${esc(d.code)}</code></td>
+            <td><span class="badge ${d.status==='Đã duyệt'?'badge-approved':d.status==='Từ chối'?'badge-rejected':'badge-pending'}">${esc(d.status)}</span></td>
+            <td>
+              ${d.status === 'Chờ duyệt' ? `
+                <button class="success" style="padding:4px 8px; font-size:0.75rem;" onclick="approveDeposit('${d.id}', '${d.user_id}', ${d.amount})">Duyệt Cộng Tiền</button>
+                <button class="danger" style="padding:4px 8px; font-size:0.75rem;" onclick="rejectDeposit('${d.id}')">Hủy</button>
+              ` : '-'}
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function approveDeposit(depositId, userId, amount) {
+  if (!confirm(`Xác nhận duyệt cộng ${money(amount)} cho người dùng này?`)) return;
+
+  // 1. Cập nhật trạng thái đơn nạp
+  await db.from("deposits").update({ status: "Đã duyệt" }).eq("id", depositId);
+
+  // 2. Lấy số dư hiện tại của User và cộng tiền
+  const { data: uProfile } = await db.from("profiles").select("balance").eq("id", userId).single();
+  const currentBal = uProfile?.balance || 0;
+  await db.from("profiles").update({ balance: currentBal + amount }).eq("id", userId);
+
+  showToast("Đã duyệt & cộng tiền thành công!", "success");
+  renderAdminDeposits();
+  
+  if (session && session.user.id === userId) {
+    profile.balance = currentBal + amount;
+    $("headerBalance").textContent = money(profile.balance);
+    $("mHeaderBalance").textContent = money(profile.balance);
+  }
+}
+
+async function rejectDeposit(depositId) {
+  if (!confirm("Từ chối đơn nạp này?")) return;
+  await db.from("deposits").update({ status: "Từ chối" }).eq("id", depositId);
+  showToast("Đã từ chối đơn nạp.", "info");
+  renderAdminDeposits();
+}
+
+// INITIALIZATION
+window.addEventListener("DOMContentLoaded", async () => {
+  if (db) {
+    const s = await db.auth.getSession();
+    session = s.data.session;
+    if (session) await onSignedIn();
+  }
+  loadProducts();
+});
+</script>
+</body>
+</html>
