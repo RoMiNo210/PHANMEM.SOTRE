@@ -53,6 +53,34 @@ header { position: sticky; top: 0; background: rgba(7, 5, 16, 0.85); backdrop-fi
 
 .navlinks { display: flex; gap: 10px; align-items: center; }
 
+/* Menu 3 Gạch Button */
+.menu-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Mobile Sidebar Drawer */
+.mobile-drawer-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+  z-index: 999; opacity: 0; pointer-events: none; transition: var(--transition);
+}
+.mobile-drawer-backdrop.active { opacity: 1; pointer-events: auto; }
+.mobile-drawer {
+  position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+  background: #0d0a1d; border-right: 1px solid var(--line); z-index: 1000; padding: 24px;
+  display: flex; flex-direction: column; gap: 15px; transition: var(--transition);
+}
+.mobile-drawer.active { left: 0; }
+.drawer-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
+.drawer-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text); text-decoration: none; font-weight: 600; background: rgba(255,255,255,0.02); border: 1px solid transparent; transition: var(--transition); }
+.drawer-link:hover, .drawer-link.active { background: rgba(168, 85, 247, 0.15); border-color: var(--accent); color: #fff; }
+
 button, .btn {
   font-weight: 700; font-size: 0.88rem; border-radius: 12px; padding: 10px 18px; border: none; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition);
@@ -62,89 +90,8 @@ button:hover, .btn:hover { transform: translateY(-2px); filter: brightness(1.1);
 button.secondary { background: rgba(255, 255, 255, 0.05); color: var(--text); border: 1px solid var(--line); box-shadow: none; }
 button.secondary:hover { background: rgba(168, 85, 247, 0.15); border-color: var(--accent); }
 button.danger { background: linear-gradient(135deg, #dc2626, #ef4444); }
-button.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
-
-.wallet-chip { display: flex; align-items: center; gap: 10px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.03); font-size: 0.82rem; }
-.wallet-chip strong { color: #c4b5fd; font-size: 0.92rem; }
-
-.hero { text-align: center; padding: 60px 0 40px; max-width: 820px; margin: auto; }
-.pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(168, 85, 247, 0.4); padding: 6px 16px; border-radius: 99px; color: #c084fc; background: rgba(147, 51, 234, 0.1); font-size: 0.82rem; font-weight: 700; margin-bottom: 20px; }
-.hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 900; line-height: 1.15; letter-spacing: -0.04em; margin-bottom: 18px; }
-.hero h1 .gradient { background: linear-gradient(120deg, #c084fc, #a855f7, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.hero p { color: var(--muted); font-size: 1.05rem; margin-bottom: 30px; }
-
-input, textarea, select { width: 100%; padding: 12px 16px; border: 1px solid var(--line); background: rgba(10, 7, 24, 0.8); color: var(--text); border-radius: 12px; outline: none; transition: var(--transition); }
-input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); }
-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
-
-.filter-bar { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; background: var(--bg-card); padding: 12px 18px; border-radius: 16px; border: 1px solid var(--line); margin-bottom: 30px; }
-.cat-btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.cat-btn { background: transparent; border: 1px solid transparent; color: var(--muted); padding: 8px 16px; border-radius: 10px; }
-.cat-btn.active { background: rgba(168, 85, 247, 0.2); color: #fff; border-color: var(--accent); }
-
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
-.card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; transition: var(--transition); display: flex; flex-direction: column; position: relative; }
-.card:hover { transform: translateY(-4px); border-color: var(--line-hover); box-shadow: 0 12px 35px rgba(147, 51, 234, 0.2); }
-
-.product-img { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; position: relative; background: #181330; margin-bottom: 14px; }
-.product-img img { width: 100%; height: 100%; object-fit: cover; }
-
-.card-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; color: #fff; }
-.card-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-.buyrow { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
-.price { font-size: 1.25rem; font-weight: 900; color: #c084fc; }
-
-.panel { background: var(--bg-card); border: 1px solid var(--line); border-radius: 20px; padding: 24px; margin-bottom: 30px; }
-
-.modal-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(5, 3, 14, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-.modal-backdrop[hidden] { display: none !important; }
-.modal-window { width: min(600px, 100%); background: #0d0a1d; border: 1px solid var(--line); border-radius: 24px; padding: 24px; }
-.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-
-.status { padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); font-size: 0.88rem; margin: 12px 0; border-left: 4px solid var(--muted); }
-.status.ok { background: rgba(34, 197, 94, 0.1); border-color: var(--green); color: #86efac; }
-.status.err { background: rgba(239, 68, 68, 0.1); border-color: var(--red); color: #fca5a5; }
-
-#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-.toast { padding: 14px 20px; border-radius: 12px; background: #16122c; color: #fff; border: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 0.9rem; }
-
-.table-wrap { overflow-x: auto; margin-top: 15px; }
-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left; }
-th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
-th { color: var(--muted); font-weight: 700; background: rgba(255,255,255,0.02); }
-
-.hidden { display: none !important; }
-</style>
-</head>
-<body>
-
-<div class="bg-glow"></div>
-
-<!-- HEADER -->
-<header>
-  <div class="wrap nav">
-    <a href="#" class="brand"><i class="fa-solid fa-cube"></i> Phần Mềm<span>.store</span></a>
-    <div class="navlinks">
-      <button class="secondary" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-      <button class="secondary" onclick="openDepositModal()"><i class="fa-solid fa-bolt"></i> Nạp tiền</button>
-
-      <div id="walletChip" class="wallet-chip hidden">
-        <i class="fa-solid fa-wallet" style="color:var(--accent)"></i>
-        <div>
-          <strong id="headerBalance">0 ₫</strong>
-          <div id="headerUsername" style="font-size:0.7rem; color:var(--muted)">Tài khoản</div>
-        </div>
-      </div>
-
-      <button id="accountBtn" onclick="session?toggleUserArea():showAuth()">
-        <i class="fa-solid fa-user"></i> <span>Đăng nhập</span>
-      </button>
-    </div>
-  </div>
-</header>
-
-<main class="wrap">
+button.success { background: linear-gradient(135deg, #16a34a, #2
+  <main class="wrap">
 
   <!-- HERO SECTION -->
   <section class="hero">
@@ -240,9 +187,8 @@ th { color: var(--muted); font-weight: 700; background: rgba(255,255,255,0.02); 
       <label>Mô tả sản phẩm</label>
       <textarea id="pDesc" rows="2" placeholder="Mô tả tính năng..."></textarea>
 
-      <!-- CỘT NỘI DUNG SẢN PHẨM SẼ GIAO -->
       <label style="color:var(--cyan);">Nội dung giao cho khách khi mua (Key, Link File, ACC...)</label>
-      <textarea id="pContent" rows="3" placeholder="Nhập Key kích hoạt hoặc Link Google Drive / ZippyShare tải File tại đây..."></textarea>
+      <textarea id="pContent" rows="3" placeholder="Nhập Key kích hoạt hoặc Link Google Drive tải File tại đây..."></textarea>
 
       <div class="grid" style="grid-template-columns:1fr 1fr; gap:15px;">
         <div>
@@ -308,8 +254,7 @@ th { color: var(--muted); font-weight: 700; background: rgba(255,255,255,0.02); 
 </div>
 
 <div id="toast-container"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://rrpogfsoiuwkrubaujvi.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9M2ne0k2IU0-LwUXXeV0mg_jxGaM5tI";
@@ -326,6 +271,11 @@ let authMode = "login";
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(Number(n || 0));
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function toggleDrawer(open) {
+  $("mobileDrawer").classList.toggle("active", open);
+  $("drawerBackdrop").classList.toggle("active", open);
+}
 
 function showToast(message, type = "info") {
   const container = $("toast-container");
@@ -354,6 +304,12 @@ function copyDeliveredContent() {
   showToast("Đã sao chép thành công!", "success");
 }
 
+function toggleAuthMode() {
+  authMode = authMode === "login" ? "signup" : "login";
+  $("authTitle").innerHTML = authMode === "login" ? '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập' : '<i class="fa-solid fa-user-plus"></i> Tạo tài khoản';
+  $("authUsername").placeholder = authMode === "login" ? "Tên tài khoản..." : "Tên đăng ký mới...";
+}
+
 async function submitAuth() {
   const username = $("authUsername").value.trim().toLowerCase();
   const password = $("authPassword").value;
@@ -379,19 +335,31 @@ async function onSignedIn() {
   let r = await db.from("profiles").select("*").eq("id", u.id).maybeSingle();
   profile = r.data;
 
-  $("accountBtn").innerHTML = `<span>${esc(profile?.display_name)}</span>`;
+  const uname = profile?.display_name || u.email.split('@')[0];
+  const formattedBal = money(profile?.balance ?? 0);
+
+  $("accountBtn").innerHTML = `<span>${esc(uname)}</span>`;
   $("walletChip").classList.remove("hidden");
-  $("headerBalance").textContent = money(profile?.balance ?? 0);
+  $("headerUsername").textContent = uname;
+  $("headerBalance").textContent = formattedBal;
+
+  $("drawerWallet").classList.remove("hidden");
+  $("drawerUsername").textContent = uname;
+  $("drawerBalance").textContent = formattedBal;
+
   $("userArea").classList.remove("hidden");
+  $("welcome").textContent = "Xin chào, " + uname;
 
   if (profile?.role === "admin") {
     $("adminShortcut").classList.remove("hidden");
+    $("drawerAdminLink").classList.remove("hidden");
     loadAdmin();
   }
   refreshMyData();
 }
 
 async function refreshMyData() {
+  if (!session) return;
   const o = await db.from("orders").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
   
   $("myOrders").innerHTML = o.data?.length ? o.data.map(x => `
@@ -401,4 +369,192 @@ async function refreshMyData() {
         <span style="color:var(--accent); font-weight:700;">${money(x.total)}</span>
       </div>
       <div style="margin-top:8px; background:#000; padding:8px 12px; border-radius:6px; font-family:monospace; color:#86efac; font-size:0.85rem;">
-        ${es
+        ${esc(x.content_delivered || 'Chưa có nội dung')}
+      </div>
+    </div>
+  `).join("") : "Chưa mua đơn hàng nào.";
+  }
+  async function loadProducts() {
+  if (!db) {
+    $("connection").textContent = "Chưa kết nối CSDL Supabase";
+    return;
+  }
+  const r = await db.from("products").select("*").eq("active", true).order("created_at", { ascending: false });
+  products = r.data || [];
+  $("connection").textContent = `Đã kết nối CSDL · ${products.length} sản phẩm`;
+  $("connection").className = "status ok";
+  renderProducts();
+}
+
+function setCategory(cat) {
+  activeCategory = cat;
+  document.querySelectorAll(".cat-btn").forEach(btn => btn.classList.toggle("active", btn.textContent.includes(cat)));
+  renderProducts();
+}
+
+function renderProducts() {
+  const query = $("search").value.toLowerCase();
+  let filtered = products.filter(p => (activeCategory === "Tất Cả" || p.category === activeCategory) && p.name.toLowerCase().includes(query));
+
+  $("productList").innerHTML = filtered.map(p => `
+    <div class="card">
+      <div class="product-img"><img src="${p.image_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80'}"></div>
+      <div class="card-title">${esc(p.name)}</div>
+      <div class="card-desc">${esc(p.description)}</div>
+      <div class="buyrow">
+        <div class="price">${money(p.price)}</div>
+        <button onclick="buyProduct('${p.id}')"><i class="fa-solid fa-cart-shopping"></i> Mua Ngay</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// MUA HÀNG & PHÁT KEY TỰ ĐỘNG
+async function buyProduct(id) {
+  if (!session) return showAuth();
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  if ((profile?.balance || 0) < p.price) {
+    return showToast("Số dư không đủ! Vui lòng nạp thêm tiền.", "error");
+  }
+
+  if (confirm(`Xác nhận mua "${p.name}" với giá ${money(p.price)}?`)) {
+    const newBal = profile.balance - p.price;
+    await db.from("profiles").update({ balance: newBal }).eq("id", session.user.id);
+
+    const delivered = p.content || "Cảm ơn bạn đã mua hàng! Vui lòng liên hệ CSKH để nhận file.";
+    await db.from("orders").insert({
+      user_id: session.user.id,
+      product_name: p.name,
+      quantity: 1,
+      total: p.price,
+      content_delivered: delivered,
+      status: "Thành công"
+    });
+
+    profile.balance = newBal;
+    $("headerBalance").textContent = money(newBal);
+    $("drawerBalance").textContent = money(newBal);
+    
+    $("deliveredContent").value = delivered;
+    $("deliveredModal").hidden = false;
+
+    refreshMyData();
+  }
+}
+
+// ADMIN FUNCTIONS
+async function loadAdmin() {
+  adminTab('product');
+}
+
+function adminTab(tab) {
+  $("adminProduct").classList.toggle("hidden", tab !== 'product');
+  $("adminDeposits").classList.toggle("hidden", tab !== 'deposits');
+  if (tab === 'product') renderAdminProducts();
+  if (tab === 'deposits') renderAdminDeposits();
+}
+
+function renderAdminProducts() {
+  $("adminProducts").innerHTML = `
+    <table>
+      <thead><tr><th>Tên</th><th>Giá</th><th>Nội dung giao</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        ${products.map(p => `
+          <tr>
+            <td><b>${esc(p.name)}</b></td>
+            <td>${money(p.price)}</td>
+            <td style="font-family:monospace; color:var(--cyan);">${esc(p.content || '-')}</td>
+            <td><button class="secondary" style="padding:4px 8px;" onclick="editProduct('${p.id}')">Sửa</button></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function renderAdminDeposits() {
+  const r = await db.from("deposits").select("*, profiles(display_name)").order("created_at", { ascending: false });
+  const list = r.data || [];
+
+  $("allDeposits").innerHTML = `
+    <table>
+      <thead><tr><th>Người nạp</th><th>Số tiền</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        ${list.map(d => `
+          <tr>
+            <td><b>${esc(d.profiles?.display_name || d.user_id)}</b></td>
+            <td style="color:var(--green);">${money(d.amount)}</td>
+            <td>${esc(d.note || '-')}</td>
+            <td>
+              ${d.status === 'Đang chờ' ? `<button class="success" style="padding:4px 8px;" onclick="approveDeposit('${d.id}', '${d.user_id}', ${d.amount})">Duyệt Cộng Tiền</button>` : 'Đã duyệt'}
+            </td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function approveDeposit(depositId, userId, amount) {
+  const p = await db.from("profiles").select("balance").eq("id", userId).single();
+  const currentBal = p.data?.balance || 0;
+
+  await db.from("profiles").update({ balance: currentBal + Number(amount) }).eq("id", userId);
+  await db.from("deposits").update({ status: "Đã cộng tiền" }).eq("id", depositId);
+
+  showToast("Đã duyệt nạp tiền!", "success");
+  renderAdminDeposits();
+}
+
+async function saveProduct() {
+  const payload = {
+    name: $("pName").value.trim(),
+    category: $("pCategory").value,
+    description: $("pDesc").value.trim(),
+    content: $("pContent").value.trim(),
+    price: Number($("pPrice").value),
+    stock: Number($("pStock").value),
+    image_url: $("pImage").value.trim(),
+    active: true
+  };
+
+  const editId = $("editId").value;
+  if (editId) {
+    await db.from("products").update(payload).eq("id", editId);
+  } else {
+    await db.from("products").insert(payload);
+  }
+
+  showToast("Lưu sản phẩm thành công!", "success");
+  clearProductForm();
+  loadProducts();
+}
+
+function clearProductForm() {
+  $("editId").value = ""; $("pName").value = ""; $("pDesc").value = ""; $("pContent").value = ""; $("pPrice").value = "100000";
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  $("editId").value = p.id;
+  $("pName").value = p.name;
+  $("pDesc").value = p.description || "";
+  $("pContent").value = p.content || "";
+  $("pPrice").value = p.price;
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  if (db) {
+    const s = await db.auth.getSession();
+    session = s.data.session;
+    if (session) await onSignedIn();
+  }
+  loadProducts();
+});
+</script>
+</body>
+</html>
+  
