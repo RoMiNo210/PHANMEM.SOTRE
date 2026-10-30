@@ -68,7 +68,7 @@ function canonicalProductName(value){
  return aliases[n]||null;
 }
 ;let active='all',cart=[],client=null,user=null,authMode='login';const $=s=>document.querySelector(s),money=n=>new Intl.NumberFormat('vi-VN').format(n)+' ₫';function render(){const q=$('#search').value.trim().toLocaleLowerCase('vi');let list=products.filter(p=>(!q||p.name.toLocaleLowerCase('vi').includes(q)));$('#resultCount').textContent=`Hiển thị ${list.length} sản phẩm`;$('#grid').innerHTML=list.length?list.map((p,i)=>`<article class="product" data-product-card="${p.id}" style="animation-delay:${Math.min(i*35,300)}ms"><div class="art"><img loading="lazy" src="${p.image}" alt="Ảnh sản phẩm ${p.name}"><span class="badge left">★ ${p.badge||'NEW'}</span></div><div class="product-body"><div class="tags"><span class="tag">▣ ${p.platform||p.category}</span><span class="tag secondary">${p.stock!==undefined?`📦 Còn ${p.stock} sản phẩm`:"✦ Digital"}</span></div><h3>${p.name}</h3>${p.sold!==undefined?`<div class="sold">🔥 Đã bán ${p.sold}</div>`:""}${(p.desc||[]).map(d=>`<div class="feature">${d}</div>`).join('')}<div class="bottom"><span class="price">${money(p.price).replace(' ₫','')} <small>VND</small></span><button class="primary buy" data-add="${p.id}">🛒 Mua ngay</button></div></div>${(typeof isAdmin!=='undefined'&&isAdmin)?`<div class="product-admin-actions"><button class="primary" data-card-edit="${p.id}">✏️ Chỉnh sửa</button><button class="danger" data-card-delete="${p.id}">🗑 Xóa</button></div>`:''}</article>`).join(''):'<p>Chưa có sản phẩm.</p>'}
-$('#search').addEventListener('input',render);$('#grid').addEventListener('click',async e=>{const ed=e.target.closest('[data-card-edit]'),del=e.target.closest('[data-card-delete]'),b=e.target.closest('[data-add]');if(ed){if(!isAdmin)return;await fillProductEdit(Number(ed.dataset.cardEdit));document.getElementById('adminSection').scrollIntoView({behavior:'smooth'});return;}if(del){if(!isAdmin)return;if(confirm('Xóa sản phẩm này?')){const pid=Number(del.dataset.cardDelete);const check=await client.from('products').select('id').eq('id',pid).maybeSingle();if(check.error){alert('Không kiểm tra được sản phẩm: '+check.error.message);return;}if(check.data){const {error}=await client.from('products').delete().eq('id',pid);if(error){alert('Xóa thất bại: '+error.message);return;}await loadDbProducts();}else{const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');if(!deleted.includes(pid))deleted.push(pid);localStorage.setItem('shopThuDeletedProducts',JSON.stringify(deleted));localStorage.removeItem('shopThuLocalEdits');const ix=products.findIndex(p=>Number(p.id)===pid);if(ix>=0)products.splice(ix,1);render();}await renderAdminProducts();}return;}if(b){cart.push(Number(b.dataset.add));showCart();return;}const card=e.target.closest('[data-product-card]');if(card&&isAdmin){await fillProductEdit(Number(card.dataset.productCard));document.getElementById('adminSection').scrollIntoView({behavior:'smooth'});}});function showCart(){$('#cartCount').textContent=cart.length;$('#cartItems').innerHTML=cart.length?cart.map((id,i)=>{const p=products.find(x=>x.id===id);return `<div class="cart-line"><span>${p.name}<br><small>${money(p.price)}</small></span><button class="remove" data-remove="${i}">Xóa</button></div>`}).join(''):'<p class="muted">Chưa có sản phẩm trong giỏ.</p>';$('#cartTotal').textContent='Tổng tạm tính: '+money(cart.reduce((s,id)=>s+products.find(p=>p.id===id).price,0));$('#cartModal').classList.add('show')}$('#cartBtn').onclick=showCart;$('#cartItems').onclick=e=>{if(e.target.dataset.remove!==undefined){cart.splice(Number(e.target.dataset.remove),1);showCart()}};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('show'));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))});$('#loginBtn').onclick=()=>{if(user){$('#authStatus').textContent='Đang đăng nhập: '+user.email}$('#authModal').classList.add('show')};$('#toggleAuth').onclick=()=>{authMode=authMode==='login'?'signup':'login';$('#authTitle').textContent=authMode==='login'?'Đăng nhập':'Đăng ký';$('#authSubmit').textContent=$('#authTitle').textContent;$('#toggleAuth').textContent=authMode==='login'?'Đăng ký':'Đăng nhập';$('#authStatus').textContent=''};$('#authForm').onsubmit=async e=>{e.preventDefault();if(!client){$('#authStatus').textContent='Cần cấu hình Supabase URL và publishable key trong index.html.';return}const email=$('#email').value,password=$('#password').value;$('#authSubmit').disabled=true;try{const r=authMode==='login'?await client.auth.signInWithPassword({email,password}):await client.auth.signUp({email,password});if(r.error)throw r.error;user=r.data.user;$('#authStatus').textContent=r.data.session?'Đăng nhập thành công.':'Vui lòng xác nhận email nếu được yêu cầu.';if(r.data.session){$('#loginBtn').textContent='✓ Tài khoản';if(authMode==='login'&&typeof window.showLoginVideoToast==='function')window.showLoginVideoToast(email);setTimeout(()=>$('#authModal').classList.remove('show'),700)}}catch(err){$('#authStatus').textContent=err.message||'Không thể đăng nhập'}finally{$('#authSubmit').disabled=false}};(async()=>{if(SUPABASE_URL.startsWith('https://')&&SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_')&&window.supabase){client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const r=await client.auth.getSession();user=r.data.session?.user||null;if(user)$('#loginBtn').textContent='✓ Tài khoản';client.auth.onAuthStateChange((_,session)=>{user=session?.user||null;$('#loginBtn').textContent=user?'✓ Tài khoản':'♟ Đăng nhập'})}})();render();
+$('#search').addEventListener('input',render);$('#grid').addEventListener('click',async e=>{const ed=e.target.closest('[data-card-edit]'),del=e.target.closest('[data-card-delete]'),b=e.target.closest('[data-add]');if(ed){if(!isAdmin)return;await fillProductEdit(ed.dataset.cardEdit);document.getElementById('adminSection').scrollIntoView({behavior:'smooth'});return;}if(del){if(!isAdmin)return;if(confirm('Xóa sản phẩm này?')){const pid=String(del.dataset.cardDelete);const check=await client.from('products').select('id').eq('id',pid).maybeSingle();if(check.error){alert('Không kiểm tra được sản phẩm: '+check.error.message);return;}if(check.data){const {error}=await client.from('products').delete().eq('id',pid);if(error){alert('Xóa thất bại: '+error.message);return;}await loadDbProducts();}else{const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');if(!deleted.includes(pid))deleted.push(pid);localStorage.setItem('shopThuDeletedProducts',JSON.stringify(deleted));localStorage.removeItem('shopThuLocalEdits');const ix=products.findIndex(p=>String(p.id)===String(pid));if(ix>=0)products.splice(ix,1);render();}await renderAdminProducts();}return;}if(b){cart.push(String(b.dataset.add));showCart();return;}const card=e.target.closest('[data-product-card]');if(card&&isAdmin){await fillProductEdit(Number(card.dataset.productCard));document.getElementById('adminSection').scrollIntoView({behavior:'smooth'});}});function showCart(){$('#cartCount').textContent=cart.length;$('#cartItems').innerHTML=cart.length?cart.map((id,i)=>{const p=products.find(x=>String(x.id)===String(id));return `<div class="cart-line"><span>${p.name}<br><small>${money(p.price)}</small></span><button class="remove" data-remove="${i}">Xóa</button></div>`}).join(''):'<p class="muted">Chưa có sản phẩm trong giỏ.</p>';$('#cartTotal').textContent='Tổng tạm tính: '+money(cart.reduce((s,id)=>s+products.find(p=>String(p.id)===String(id)).price,0));$('#cartModal').classList.add('show')}$('#cartBtn').onclick=showCart;$('#cartItems').onclick=e=>{if(e.target.dataset.remove!==undefined){cart.splice(Number(e.target.dataset.remove),1);showCart()}};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('show'));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'))});$('#loginBtn').onclick=()=>{if(user){$('#authStatus').textContent='Đang đăng nhập: '+user.email}$('#authModal').classList.add('show')};$('#toggleAuth').onclick=()=>{authMode=authMode==='login'?'signup':'login';$('#authTitle').textContent=authMode==='login'?'Đăng nhập':'Đăng ký';$('#authSubmit').textContent=$('#authTitle').textContent;$('#toggleAuth').textContent=authMode==='login'?'Đăng ký':'Đăng nhập';$('#authStatus').textContent=''};$('#authForm').onsubmit=async e=>{e.preventDefault();if(!client){$('#authStatus').textContent='Cần cấu hình Supabase URL và publishable key trong index.html.';return}const email=$('#email').value,password=$('#password').value;$('#authSubmit').disabled=true;try{const r=authMode==='login'?await client.auth.signInWithPassword({email,password}):await client.auth.signUp({email,password});if(r.error)throw r.error;user=r.data.user;$('#authStatus').textContent=r.data.session?'Đăng nhập thành công.':'Vui lòng xác nhận email nếu được yêu cầu.';if(r.data.session){$('#loginBtn').textContent='✓ Tài khoản';if(authMode==='login'&&typeof window.showLoginVideoToast==='function')window.showLoginVideoToast(email);setTimeout(()=>$('#authModal').classList.remove('show'),700)}}catch(err){$('#authStatus').textContent=err.message||'Không thể đăng nhập'}finally{$('#authSubmit').disabled=false}};(async()=>{if(SUPABASE_URL.startsWith('https://')&&SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_')&&window.supabase){client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);const r=await client.auth.getSession();user=r.data.session?.user||null;if(user)$('#loginBtn').textContent='✓ Tài khoản';client.auth.onAuthStateChange((_,session)=>{user=session?.user||null;$('#loginBtn').textContent=user?'✓ Tài khoản':'♟ Đăng nhập'})}})();render();
 
 // Premium UI: scroll progress, reveal, sorting and accessible interactions.
 document.getElementById('sortProducts')?.addEventListener('change',render);
@@ -153,34 +153,32 @@ async function refreshAccount(){if(!client||!user){walletBalance=0;isAdmin=false
 async function loadDbProducts(){
  if(!client)return;
  try{
-  const {data,error}=await client.from('products').select('*').eq('active',true).order('id');
+  // products.id is UUID in this Supabase project; never coerce it to Number.
+  const {data,error}=await client.from('products').select('*').order('name');
   if(error)throw error;
-  if(data&&data.length){
-   const mapped=data.map(x=>{
-    const canonical=canonicalProductName(x.name)||String(x.name||'').trim();
-    if(!canonical)return null;
-    const description=Array.isArray(x.description)?x.description:(typeof x.description==='string'?x.description.split('\n').filter(Boolean):[]);
-    return {id:Number(x.id),name:canonical,category:x.category||'Tool',price:Number(x.price||0),image:x.image||productImageByName[canonical]||'https://placehold.co/640x360/10102b/ffffff?text='+encodeURIComponent(canonical),desc:description,badge:x.badge||'NEW',platform:x.platform||(canonical.toLowerCase().includes('ios')?'iOS':'ANDROID'),sold:Number(x.sold||0),stock:x.stock==null?undefined:Number(x.stock),warranty:x.warranty||''};
-   }).filter(Boolean);
-   if(mapped.length){
-    // Once the database has products, it becomes the source of truth so admin deletions are reflected.
-    products.splice(0,products.length,...mapped);
-    render();
-   }
-  }
- }catch(e){console.warn('DB products unavailable; using catalog embedded in HTML',e.message)}
+  const rows=(data||[]).filter(x=>x.active!==false);
+  const mapped=rows.map(x=>{
+   const canonical=canonicalProductName(x.name)||String(x.name||'').trim();
+   if(!canonical)return null;
+   const rawDesc=x.description;
+   const description=Array.isArray(rawDesc)?rawDesc:(typeof rawDesc==='string'?rawDesc.split('\n').filter(Boolean):[]);
+   return {id:String(x.id),name:canonical,category:x.category||'Tool',price:Number(x.price||0),image:x.image_url||x.image||productImageByName[canonical]||'https://placehold.co/640x360/10102b/ffffff?text='+encodeURIComponent(canonical),desc:description,badge:x.badge||'NEW',platform:x.platform||(canonical.toLowerCase().includes('ios')?'iOS':'ANDROID'),sold:Number(x.sold||0),stock:x.stock==null?undefined:Number(x.stock),warranty:x.warranty||''};
+  }).filter(Boolean);
+  if(mapped.length){products.splice(0,products.length,...mapped);render();}
+ }catch(e){console.warn('Không tải được products từ Supabase; đang dùng danh mục dự phòng trong HTML.',e.message)}
 }
-function openBuy(productId){buyingProduct=products.find(p=>Number(p.id)===Number(productId));if(!buyingProduct)return;if(!user){setStatus('buyStatus','');document.getElementById('buyProductSummary').innerHTML='Bạn cần đăng nhập bằng Gmail để mua hàng.';document.getElementById('buyQuantity').value=1;document.getElementById('confirmBuy').disabled=true;document.getElementById('buyNowModal').classList.add('show');return;}document.getElementById('confirmBuy').disabled=false;document.getElementById('buyProductSummary').innerHTML=`<b>${esc(buyingProduct.name)}</b><br>Đơn giá: ${money(buyingProduct.price)}<br>Số dư hiện tại: ${money(walletBalance)}`;document.getElementById('buyQuantity').value=1;setStatus('buyStatus','');updateBuyTotal();document.getElementById('buyNowModal').classList.add('show');}
+
+function openBuy(productId){buyingProduct=products.find(p=>String(p.id)===String(productId));if(!buyingProduct)return;if(!user){setStatus('buyStatus','');document.getElementById('buyProductSummary').innerHTML='Bạn cần đăng nhập bằng Gmail để mua hàng.';document.getElementById('buyQuantity').value=1;document.getElementById('confirmBuy').disabled=true;document.getElementById('buyNowModal').classList.add('show');return;}document.getElementById('confirmBuy').disabled=false;document.getElementById('buyProductSummary').innerHTML=`<b>${esc(buyingProduct.name)}</b><br>Đơn giá: ${money(buyingProduct.price)}<br>Số dư hiện tại: ${money(walletBalance)}`;document.getElementById('buyQuantity').value=1;setStatus('buyStatus','');updateBuyTotal();document.getElementById('buyNowModal').classList.add('show');}
 function updateBuyTotal(){if(!buyingProduct)return;let q=Math.max(1,Math.min(999,Number(document.getElementById('buyQuantity').value)||1));document.getElementById('buyQuantity').value=q;document.getElementById('buyPriceTotal').textContent='Thành tiền: '+money(q*buyingProduct.price);}
-document.getElementById('grid').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();openBuy(Number(b.dataset.add));},true);
+document.getElementById('grid').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();openBuy(b.dataset.add);},true);
 document.getElementById('qtyMinus').onclick=()=>{document.getElementById('buyQuantity').value=Math.max(1,Number(document.getElementById('buyQuantity').value||1)-1);updateBuyTotal()};document.getElementById('qtyPlus').onclick=()=>{document.getElementById('buyQuantity').value=Math.min(999,Number(document.getElementById('buyQuantity').value||1)+1);updateBuyTotal()};document.getElementById('buyQuantity').oninput=updateBuyTotal;
-document.getElementById('confirmBuy').onclick=async()=>{if(!client||!user){setStatus('buyStatus','Vui lòng đăng nhập trước khi mua.');return;}if(!buyingProduct)return;const quantity=Math.max(1,Math.min(999,Number(document.getElementById('buyQuantity').value)||1));const btn=document.getElementById('confirmBuy');btn.disabled=true;setStatus('buyStatus','Đang xử lý đơn hàng...');try{const {data,error}=await client.rpc('purchase_product_with_delivery',{p_product_id:Number(buyingProduct.id),p_quantity:quantity});if(error)throw error;if(data&&data.ok===false)throw new Error(data.message||'Không thể mua sản phẩm');await refreshAccount();const delivered=Array.isArray(data?.delivery_links)?data.delivery_links:[];const deliveryText=delivered.length?'\n\nLINK SẢN PHẨM CỦA BẠN:\n'+delivered.join('\n'):'\n\nChưa có link giao hàng. Vui lòng liên hệ hỗ trợ.';setStatus('buyStatus',`Mua thành công! ${buyingProduct.name}\nSố lượng: ${quantity}\nSố tiền: ${money(quantity*buyingProduct.price)}\nSố dư còn lại: ${money(walletBalance)}${deliveryText}`);await loadDbProducts();btn.textContent='Đã mua thành công';setTimeout(()=>{document.getElementById('buyNowModal').classList.remove('show');btn.textContent='Xác nhận mua ngay';btn.disabled=false;},2200);}catch(err){setStatus('buyStatus',err.message||'Mua hàng thất bại.');btn.disabled=false;}};
+document.getElementById('confirmBuy').onclick=async()=>{if(!client||!user){setStatus('buyStatus','Vui lòng đăng nhập trước khi mua.');return;}if(!buyingProduct)return;const quantity=Math.max(1,Math.min(999,Number(document.getElementById('buyQuantity').value)||1));const btn=document.getElementById('confirmBuy');btn.disabled=true;setStatus('buyStatus','Đang xử lý đơn hàng...');try{const {data,error}=await client.rpc('purchase_product_with_delivery',{p_product_id:buyingProduct.id,p_quantity:quantity});if(error)throw error;if(data&&data.ok===false)throw new Error(data.message||'Không thể mua sản phẩm');await refreshAccount();const delivered=Array.isArray(data?.delivery_links)?data.delivery_links:[];const deliveryText=delivered.length?'\n\nLINK SẢN PHẨM CỦA BẠN:\n'+delivered.join('\n'):'\n\nChưa có link giao hàng. Vui lòng liên hệ hỗ trợ.';setStatus('buyStatus',`Mua thành công! ${buyingProduct.name}\nSố lượng: ${quantity}\nSố tiền: ${money(quantity*buyingProduct.price)}\nSố dư còn lại: ${money(walletBalance)}${deliveryText}`);await loadDbProducts();btn.textContent='Đã mua thành công';setTimeout(()=>{document.getElementById('buyNowModal').classList.remove('show');btn.textContent='Xác nhận mua ngay';btn.disabled=false;},2200);}catch(err){setStatus('buyStatus',err.message||'Mua hàng thất bại.');btn.disabled=false;}};
 function clearProductForm(){['editProductId','adminProductName','adminProductPrice','adminProductImage','adminProductPlatform','adminProductStock','adminProductBadge','adminProductDesc','adminProductLinks'].forEach(id=>document.getElementById(id).value='');document.getElementById('adminProductCategory').value='Game';pickedProductImage='';const f=document.getElementById('adminProductImageFile');if(f)f.value='';const im=document.getElementById('adminImagePreview');if(im)im.style.display='none';}
 document.getElementById('cancelEdit').onclick=clearProductForm;
 let pickedProductImage='';
 document.getElementById('adminProductImageFile')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){setStatus('adminProductStatus','Vui lòng chọn tệp ảnh.');return;}if(f.size>1800000){setStatus('adminProductStatus','Ảnh tối đa 1,8 MB để tránh vượt giới hạn lưu trữ.');e.target.value='';return;}const reader=new FileReader();reader.onload=()=>{pickedProductImage=String(reader.result);const im=document.getElementById('adminImagePreview');im.src=pickedProductImage;im.style.display='block';document.getElementById('adminProductImage').value='';};reader.readAsDataURL(f);});
 async function fillProductEdit(id){if(!isAdmin||!client)return;const {data,error}=await client.from('products').select('*').eq('id',id).maybeSingle();if(error){setStatus('adminProductStatus',error.message);return;}if(!data){
- const local=products.find(p=>Number(p.id)===Number(id));
+ const local=products.find(p=>String(p.id)===String(id));
  if(!local){setStatus('adminProductStatus','Không tìm thấy sản phẩm này. Hãy tải lại danh sách rồi thử lại.');return;}
  document.getElementById('editProductId').value=local.id;
  document.getElementById('adminProductName').value=local.name||'';
@@ -196,17 +194,43 @@ async function fillProductEdit(id){if(!isAdmin||!client)return;const {data,error
  document.getElementById('adminProductLinks').value='';
  setStatus('adminProductStatus','Đang sửa sản phẩm gốc trong danh mục của trình duyệt.');
  return;
-}document.getElementById('editProductId').value=data.id;document.getElementById('adminProductName').value=data.name||'';document.getElementById('adminProductCategory').value=data.category||'Game';document.getElementById('adminProductPrice').value=data.price||0;document.getElementById('adminProductImage').value=data.image||'';pickedProductImage=data.image&&data.image.startsWith('data:image/')?data.image:'';document.getElementById('adminProductPlatform').value=data.platform||'';document.getElementById('adminProductStock').value=data.stock??'';document.getElementById('adminProductBadge').value=data.badge||'NEW';document.getElementById('adminProductDesc').value=(Array.isArray(data.description)?data.description:(data.description||'').split('\\n')).join('\\n');const im=document.getElementById('adminImagePreview');if(data.image){im.src=data.image;im.style.display='block';}else im.style.display='none';const lr=await client.from('product_delivery_links').select('links').eq('product_id',Number(id)).maybeSingle();if(lr.error){setStatus('adminProductStatus','Không tải được link giao hàng: '+lr.error.message);return;}document.getElementById('adminProductLinks').value=uniqueDeliveryLinks(lr.data?.links||[]).join('\n');}
+}document.getElementById('editProductId').value=data.id;document.getElementById('adminProductName').value=data.name||'';document.getElementById('adminProductCategory').value=data.category||'Game';document.getElementById('adminProductPrice').value=data.price||0;document.getElementById('adminProductImage').value=data.image||'';pickedProductImage=data.image&&data.image.startsWith('data:image/')?data.image:'';document.getElementById('adminProductPlatform').value=data.platform||'';document.getElementById('adminProductStock').value=data.stock??'';document.getElementById('adminProductBadge').value=data.badge||'NEW';document.getElementById('adminProductDesc').value=(Array.isArray(data.description)?data.description:(data.description||'').split('\\n')).join('\\n');const im=document.getElementById('adminImagePreview');if(data.image){im.src=data.image;im.style.display='block';}else im.style.display='none';const lr=await client.from('product_delivery_links').select('links').eq('product_id',id).maybeSingle();if(lr.error){setStatus('adminProductStatus','Không tải được link giao hàng: '+lr.error.message);return;}document.getElementById('adminProductLinks').value=uniqueDeliveryLinks(lr.data?.links||[]).join('\n');}
 
 async function renderAdminProducts(){const box=document.getElementById('adminProductTable');if(!box||!isAdmin||!client)return;try{const {data,error}=await client.from('products').select('*').order('id');if(error)throw error;const visibleProducts=(data&&data.length?(data||[]).filter(p=>canonicalProductName(p.name)):products.map(p=>({...p,description:p.desc||[]})));box.innerHTML=`<table class="admin-table"><thead><tr><th>ID</th><th>Sản phẩm</th><th>Giá</th><th>Tồn kho</th><th>Thao tác</th></tr></thead><tbody>${visibleProducts.map(p=>`<tr><td>${p.id}</td><td>${esc(p.name)}</td><td>${money(p.price)}</td><td>${p.stock??'∞'}</td><td><button class="primary" data-edit-product="${p.id}">Sửa</button><button class="danger" data-delete-product="${p.id}">Xóa</button></td></tr>`).join('')}</tbody></table>`;}catch(e){box.textContent='Không tải được sản phẩm: '+e.message;}}
-document.getElementById('adminProductTable').addEventListener('click',async e=>{const edit=e.target.closest('[data-edit-product]'),del=e.target.closest('[data-delete-product]');if(edit){await fillProductEdit(Number(edit.dataset.editProduct));document.getElementById('adminProductName').focus();}if(del&&confirm('Bạn chắc chắn muốn xóa sản phẩm này?')){const pid=Number(del.dataset.deleteProduct);const check=await client.from('products').select('id').eq('id',pid).maybeSingle();if(check.error){setStatus('adminProductStatus','Xóa thất bại: '+check.error.message);return;}if(check.data){const q=await client.from('products').delete().eq('id',pid);if(q.error){setStatus('adminProductStatus','Xóa thất bại: '+q.error.message);return;}await loadDbProducts();}else{const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');if(!deleted.includes(pid))deleted.push(pid);localStorage.setItem('shopThuDeletedProducts',JSON.stringify(deleted));const ix=products.findIndex(p=>Number(p.id)===pid);if(ix>=0)products.splice(ix,1);render();}setStatus('adminProductStatus','Đã xóa sản phẩm.');await renderAdminProducts();}});
-document.getElementById('saveProduct').onclick=async()=>{if(!isAdmin){setStatus('adminProductStatus','Tài khoản không có quyền admin.');return;}const name=document.getElementById('adminProductName').value.trim(),price=Number(document.getElementById('adminProductPrice').value);if(!name||!Number.isFinite(price)||price<0){setStatus('adminProductStatus','Nhập tên sản phẩm và giá hợp lệ.');return;}const id=document.getElementById('editProductId').value;const deliveryLinks=uniqueDeliveryLinks(document.getElementById('adminProductLinks').value);const row={name,category:document.getElementById('adminProductCategory').value,price,image:pickedProductImage||document.getElementById('adminProductImage').value.trim()||'assets/product-01.svg',platform:document.getElementById('adminProductPlatform').value.trim(),stock:document.getElementById('adminProductStock').value===''?null:Math.max(0,Number(document.getElementById('adminProductStock').value)),badge:document.getElementById('adminProductBadge').value.trim()||'NEW',description:document.getElementById('adminProductDesc').value.split('\n').map(x=>x.trim()).filter(Boolean),active:true};try{let productId=Number(id);if(id){row.id=productId;const q=await client.from('products').update(row).eq('id',productId).select('id').maybeSingle();if(q.error)throw q.error;if(!q.data){
- const idx=products.findIndex(p=>Number(p.id)===productId);if(idx<0)throw new Error('Không tìm thấy sản phẩm để cập nhật.');
- const updated={...products[idx],id:productId,name,category:row.category,price,image:row.image,platform:row.platform,stock:row.stock??undefined,badge:row.badge,desc:row.description};
- products.splice(idx,1,updated);
- const localEdits=JSON.parse(localStorage.getItem('shopThuLocalEdits')||'{}');localEdits[String(productId)]=updated;localStorage.setItem('shopThuLocalEdits',JSON.stringify(localEdits));
- setStatus('adminProductStatus','Đã cập nhật sản phẩm gốc trên thiết bị này.');clearProductForm();render();await renderAdminProducts();return;
- }productId=Number(q.data.id);}else{const q=await client.from('products').insert(row).select('id').maybeSingle();if(q.error)throw q.error;if(!q.data?.id)throw new Error('Đã gửi lệnh tạo nhưng không nhận được ID sản phẩm. Kiểm tra quyền INSERT/RETURNING trong Supabase.');productId=Number(q.data.id);}const lq=await client.from('product_delivery_links').upsert({product_id:productId,links:deliveryLinks,updated_at:new Date().toISOString()},{onConflict:'product_id'});if(lq.error)throw new Error('Sản phẩm đã lưu nhưng chưa lưu được link giao hàng. Chạy SQL thiết lập bảng product_delivery_links và quyền admin. Chi tiết: '+lq.error.message);setStatus('adminProductStatus',`Đã ${id?'cập nhật':'thêm'} sản phẩm và lưu ${deliveryLinks.length} link không trùng.`);clearProductForm();await renderAdminProducts();await loadDbProducts();}catch(e){setStatus('adminProductStatus','Lưu thất bại: '+e.message);}};
+document.getElementById('adminProductTable').addEventListener('click',async e=>{const edit=e.target.closest('[data-edit-product]'),del=e.target.closest('[data-delete-product]');if(edit){await fillProductEdit(edit.dataset.editProduct);document.getElementById('adminProductName').focus();}if(del&&confirm('Bạn chắc chắn muốn xóa sản phẩm này?')){const pid=String(del.dataset.deleteProduct);const check=await client.from('products').select('id').eq('id',pid).maybeSingle();if(check.error){setStatus('adminProductStatus','Xóa thất bại: '+check.error.message);return;}if(check.data){const q=await client.from('products').delete().eq('id',pid);if(q.error){setStatus('adminProductStatus','Xóa thất bại: '+q.error.message);return;}await loadDbProducts();}else{const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');if(!deleted.includes(pid))deleted.push(pid);localStorage.setItem('shopThuDeletedProducts',JSON.stringify(deleted));const ix=products.findIndex(p=>String(p.id)===String(pid));if(ix>=0)products.splice(ix,1);render();}setStatus('adminProductStatus','Đã xóa sản phẩm.');await renderAdminProducts();}});
+document.getElementById('saveProduct').onclick=async()=>{
+ if(!isAdmin||!client){setStatus('adminProductStatus','Bạn cần đăng nhập bằng tài khoản admin.');return;}
+ const name=document.getElementById('adminProductName').value.trim();
+ const price=Number(document.getElementById('adminProductPrice').value);
+ const description=document.getElementById('adminProductDesc').value.trim();
+ const image_url=pickedProductImage||document.getElementById('adminProductImage').value.trim();
+ if(!name||!Number.isSafeInteger(price)||price<0){setStatus('adminProductStatus','Nhập tên sản phẩm và giá nguyên VNĐ hợp lệ.');return;}
+ if(!image_url){setStatus('adminProductStatus','Vui lòng nhập URL ảnh hoặc chọn ảnh từ thiết bị.');return;}
+ const id=document.getElementById('editProductId').value.trim();
+ const row={name,description,price,image_url};
+ try{
+  let savedId=id;
+  if(id){
+   const q=await client.from('products').update(row).eq('id',id).select('id').maybeSingle();
+   if(q.error)throw q.error;
+   if(!q.data){
+    const ix=products.findIndex(p=>String(p.id)===String(id));
+    if(ix<0)throw new Error('Không tìm thấy sản phẩm có ID này trong Supabase.');
+    const updated={...products[ix],name,price,image:image_url,desc:description.split(/\r?\n/).filter(Boolean)};
+    products.splice(ix,1,updated);
+    const edits=JSON.parse(localStorage.getItem('shopThuLocalEdits')||'{}');edits[String(id)]=updated;localStorage.setItem('shopThuLocalEdits',JSON.stringify(edits));
+    setStatus('adminProductStatus','Đã sửa sản phẩm mẫu trên thiết bị này; thay đổi này chưa đồng bộ lên Supabase.');
+    clearProductForm();render();return;
+   }
+   savedId=String(q.data.id);
+  }else{
+   const q=await client.from('products').insert(row).select('id').single();
+   if(q.error)throw q.error;savedId=String(q.data.id);
+  }
+  setStatus('adminProductStatus','Đã lưu sản phẩm lên Supabase.');
+  clearProductForm();await loadDbProducts();await renderAdminProducts();await refreshProductSelect();
+ }catch(e){setStatus('adminProductStatus','Lưu sản phẩm thất bại: '+(e.message||e));}
+};
 document.getElementById('creditButton').onclick=async()=>{const email=document.getElementById('creditEmail').value.trim(),amount=Number(document.getElementById('creditAmount').value);if(!isAdmin){setStatus('creditStatus','Tài khoản không có quyền admin.');return;}if(!email||!Number.isFinite(amount)||amount<=0){setStatus('creditStatus','Nhập đúng Gmail và số tiền lớn hơn 0.');return;}try{const {data,error}=await client.rpc('admin_credit_balance',{p_email:email,p_amount:Math.floor(amount)});if(error)throw error;if(data&&data.ok===false)throw new Error(data.message||'Không thể cộng tiền');setStatus('creditStatus',`Đã cộng ${money(Math.floor(amount))} cho ${email}.`);document.getElementById('creditAmount').value='';}catch(e){setStatus('creditStatus','Cộng tiền thất bại: '+e.message);}};
 // Keep account state, balance and admin permissions synchronized with Supabase Auth.
 if(client){client.auth.onAuthStateChange(()=>setTimeout(async()=>{const {data}=await client.auth.getSession();user=data.session?.user||null;await refreshAccount();},0));setTimeout(async()=>{const {data}=await client.auth.getSession();user=data.session?.user||null;await refreshAccount();await loadDbProducts();},500);}
@@ -250,7 +274,7 @@ document.getElementById('adminMenuLink')?.addEventListener('click',e=>{
   if(!isAdmin){e.preventDefault();return;}
   setTimeout(()=>document.getElementById('adminSection')?.scrollIntoView({behavior:'smooth'}),50);
 });
-try{const edits=JSON.parse(localStorage.getItem('shopThuLocalEdits')||'{}');for(const [id,v] of Object.entries(edits)){const ix=products.findIndex(p=>Number(p.id)===Number(id));if(ix>=0)products.splice(ix,1,{...products[ix],...v});}const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');for(const id of deleted){const ix=products.findIndex(p=>Number(p.id)===Number(id));if(ix>=0)products.splice(ix,1);}}catch(e){console.warn('Không đọc được danh mục lưu trên thiết bị',e);}render();
+try{const edits=JSON.parse(localStorage.getItem('shopThuLocalEdits')||'{}');for(const [id,v] of Object.entries(edits)){const ix=products.findIndex(p=>String(p.id)===String(id));if(ix>=0)products.splice(ix,1,{...products[ix],...v});}const deleted=JSON.parse(localStorage.getItem('shopThuDeletedProducts')||'[]');for(const id of deleted){const ix=products.findIndex(p=>String(p.id)===String(id));if(ix>=0)products.splice(ix,1);}}catch(e){console.warn('Không đọc được danh mục lưu trên thiết bị',e);}render();
 </script>
 
 <div id="loginVideoToast" class="login-video-toast" role="status" aria-live="polite">
@@ -402,7 +426,7 @@ const $id=id=>document.getElementById(id);
 const packageSQL = `create extension if not exists pgcrypto;
 create table if not exists public.product_packages(
  id uuid primary key default gen_random_uuid(),
- product_id bigint not null references public.products(id) on delete cascade,
+ product_id uuid not null references public.products(id) on delete cascade,
  name text not null, duration text not null, price bigint not null check(price>=0),
  description text default '', active boolean not null default true,
  created_at timestamptz not null default now()
@@ -415,7 +439,7 @@ create table if not exists public.package_delivery_links(
 );
 create table if not exists public.product_media(
  id uuid primary key default gen_random_uuid(),
- product_id bigint not null references public.products(id) on delete cascade,
+ product_id uuid not null references public.products(id) on delete cascade,
  url text not null, media_type text not null default 'image',
  created_at timestamptz not null default now()
 );
@@ -442,12 +466,23 @@ grant select on public.product_packages, public.product_media to anon, authentic
 grant insert,update,delete on public.product_packages, public.product_media, public.package_delivery_links to authenticated;
 create table if not exists public.package_orders(
  id uuid primary key default gen_random_uuid(), user_id uuid not null,
- product_id bigint not null references public.products(id),
+ product_id uuid not null references public.products(id),
  package_id uuid not null references public.product_packages(id),
  package_name text not null, duration text not null, amount bigint not null,
  delivery_url text not null, created_at timestamptz not null default now()
 );
+-- Migration for installations where the earlier script created BIGINT product_id.
+alter table public.product_packages drop constraint if exists product_packages_product_id_fkey;
+alter table public.product_media drop constraint if exists product_media_product_id_fkey;
+alter table public.package_orders drop constraint if exists package_orders_product_id_fkey;
+alter table public.product_packages alter column product_id type uuid using product_id::text::uuid;
+alter table public.product_media alter column product_id type uuid using product_id::text::uuid;
+alter table public.package_orders alter column product_id type uuid using product_id::text::uuid;
+alter table public.product_packages add constraint product_packages_product_id_fkey foreign key(product_id) references public.products(id) on delete cascade;
+alter table public.product_media add constraint product_media_product_id_fkey foreign key(product_id) references public.products(id) on delete cascade;
+alter table public.package_orders add constraint package_orders_product_id_fkey foreign key(product_id) references public.products(id);
 alter table public.package_orders enable row level security;
+alter table public.products add column if not exists warranty text;
 drop policy if exists package_orders_owner_read on public.package_orders;
 create policy package_orders_owner_read on public.package_orders for select to authenticated
 using(user_id=auth.uid() or exists(select 1 from public.profiles p where p.id=auth.uid() and p.role='admin'));
@@ -460,7 +495,7 @@ begin
  if v_user is null then raise exception 'Vui lòng đăng nhập'; end if;
  select * into v_pkg from product_packages where id=p_package_id and active=true for update;
  if not found then raise exception 'Gói không tồn tại hoặc đã tắt'; end if;
- select * into v_product from products where id=v_pkg.product_id and active=true for update;
+ select * into v_product from products where id=v_pkg.product_id for update;
  if not found then raise exception 'Sản phẩm đã ngừng bán'; end if;
  select balance into v_balance from profiles where id=v_user for update;
  if not found then raise exception 'Không tìm thấy hồ sơ tài khoản'; end if;
@@ -494,7 +529,7 @@ async function refreshProductSelect(){
  }catch(e){sel.innerHTML='<option value="">Không tải được sản phẩm</option>';status('Không đọc được bảng products: '+(e.message||e));}
 }
 async function openDetail(id){
- const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return; activeProduct=p;activePackage=null;
+ const p=products.find(x=>String(x.id)===String(id)); if(!p)return; activeProduct=p;activePackage=null;
  $id('detailTitle').textContent=p.name;
  $id('detailMainImage').src=p.image||'';
  $id('detailMeta').innerHTML=`<span class="tag">${safe(p.platform||p.category||'Digital')}</span><span class="tag secondary">${p.stock==null?'Kho số':'Tồn kho: '+p.stock}</span>`;
@@ -509,6 +544,7 @@ async function openDetail(id){
  delete $id('detailBuy').dataset.completed; delete $id('detailBuy').dataset.processing;
  $id('productDetailModal').classList.add('show');
  try{
+   if(!client){$id('detailPackages').textContent='Chưa kết nối được Supabase. Vui lòng tải lại trang.';return;}
    const [m,pk]=await Promise.all([
     client.from('product_media').select('url,media_type').eq('product_id',p.id).order('created_at'),
     client.from('product_packages').select('id,name,duration,price,description').eq('product_id',p.id).eq('active',true).order('price')
@@ -523,7 +559,7 @@ async function openDetail(id){
  }catch(e){$id('detailPackages').textContent='Không tải được gói. Hãy chạy SQL thiết lập ở bảng quản trị. '+(e.message||'')}
 }
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-add]'); if(b){e.preventDefault();e.stopImmediatePropagation();openDetail(Number(b.dataset.add));}
+ const b=e.target.closest('[data-add]'); if(b){e.preventDefault();e.stopImmediatePropagation();openDetail(b.dataset.add);}
 },true);
 // Ensure both purchase-related dialogs can always be dismissed on mobile.
 // The dialogs are appended late in this file, after the original close handlers.
@@ -615,13 +651,13 @@ $id('saveProductMedia')?.addEventListener('click',async()=>{
  if(!isAdmin){status('Bạn không có quyền quản trị');return}
  const pid=$id('pkgProductSelect').value;if(!pid){status('Chọn sản phẩm trước.');return}
  try{
-  const {error:delErr}=await client.from('product_media').delete().eq('product_id',Number(pid));if(delErr)throw delErr;
+  const {error:delErr}=await client.from('product_media').delete().eq('product_id',pid);if(delErr)throw delErr;
   const urls=$id('mediaUrls').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-  if(urls.length){const rows=urls.map(url=>({product_id:Number(pid),url,media_type:/\.(mp4|webm|mov)(\?|$)/i.test(url)?'video':'image'}));const {error}=await client.from('product_media').insert(rows);if(error)throw error;}
-  const product=products.find(x=>Number(x.id)===Number(pid));
+  if(urls.length){const rows=urls.map(url=>({product_id:pid,url,media_type:/\.(mp4|webm|mov)(\?|$)/i.test(url)?'video':'image'}));const {error}=await client.from('product_media').insert(rows);if(error)throw error;}
+  const product=products.find(x=>String(x.id)===String(pid));
   const description=$id('productLongDescription').value.trim(),warranty=$id('productWarranty').value.trim();
   // Store long description and warranty in existing product description fields if supported.
-  const {error}=await client.from('products').update({description:description?description.split(/\r?\n/):product?.desc||[],warranty}).eq('id',Number(pid));
+  const {error}=await client.from('products').update({description:description||((product?.desc||[]).join('\n')),warranty}).eq('id',pid);
   if(error && !/warranty/i.test(error.message))throw error;
   if(product){product.desc=description.split(/\r?\n/).filter(Boolean);product.warranty=warranty}
   status('Đã lưu thư viện media và thông tin sản phẩm. Nếu cột warranty chưa có, chạy phần SQL bổ sung cột.');await loadDbProducts();
