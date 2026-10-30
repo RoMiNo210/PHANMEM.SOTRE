@@ -398,23 +398,38 @@ try{const edits=JSON.parse(localStorage.getItem('shopThuLocalEdits')||'{}');for(
 
 <style>
 .detail-dialog{width:min(760px,100%)}.detail-gallery{display:grid;grid-template-columns:1fr;gap:10px}.detail-main{width:100%;max-height:390px;object-fit:contain;background:#07091e;border:1px solid #443477;border-radius:13px}.detail-thumbs{display:flex;gap:8px;overflow:auto}.detail-thumbs img,.detail-thumbs video{width:82px;height:62px;object-fit:cover;border:1px solid #59418e;border-radius:8px;cursor:pointer}.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.package-option{display:block;width:100%;text-align:left;padding:13px;margin:8px 0;background:#11112f;border:1px solid #51418e;border-radius:12px;color:#eee}.package-option.selected{border-color:#b46aff;background:#32175b}.package-option b{color:#d7b5ff}.package-option small{display:block;color:#aaa5c9;margin-top:4px}.detail-description{white-space:pre-wrap;line-height:1.7;color:#cbc8e5}.admin-package-box{border:1px solid #493477;padding:14px;border-radius:12px;margin-top:14px}
+
+.package-form-details,.package-media-details{margin:12px 0;border:1px solid #493477;border-radius:12px;background:#090b24;padding:12px}
+.package-form-details>summary,.package-media-details>summary{cursor:pointer;color:#e4d5ff;font-weight:800;padding:5px;list-style:none}
+.package-form-details>summary::-webkit-details-marker,.package-media-details>summary::-webkit-details-marker{display:none}
+.package-form-details>summary:after,.package-media-details>summary:after{content:'⌄';float:right;color:#bd8cff}
+.package-form-grid{margin-top:12px}
+.package-form-grid textarea{min-height:76px}
+.package-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px;margin:8px 0;border:1px solid #3d326b;border-radius:10px;background:#11112d}
+.package-row-info{min-width:0;flex:1}.package-row-info small{display:block;color:#aaa5c9;margin-top:4px}
+.package-row-actions{display:flex;gap:6px;flex-wrap:wrap}.package-row-actions button{font-size:11px;padding:7px 9px}
+@media(max-width:600px){.package-form-grid{grid-template-columns:1fr}.package-row-actions{width:100%}.package-row-actions button{flex:1}}
 </style>
 <div class="modal" id="productDetailModal"><div class="dialog detail-dialog"><button class="close" data-close="productDetailModal">×</button><h2 id="detailTitle">Chi tiết sản phẩm</h2><div class="detail-gallery"><img id="detailMainImage" class="detail-main" alt="Ảnh sản phẩm"><div class="detail-thumbs" id="detailThumbs"></div></div><div class="detail-meta" id="detailMeta"></div><h3>Mô tả chi tiết</h3><div id="detailDescription" class="detail-description"></div><p id="detailWarranty" class="muted"></p><h3>Chọn gói và thời hạn</h3><div id="detailPackages"></div><p id="detailPrice" class="price"></p><p id="detailStatus" class="status"></p><button class="primary full" id="detailBuy" type="button" disabled>Xác nhận mua gói này</button></div></div>
 <div class="admin-panel" id="packageAdminPanel" style="display:none">
-<h3>🎁 Quản lý gói, kho link và thư viện media</h3>
-<p class="muted">Chọn sản phẩm rồi thêm gói. Mỗi dòng link trong kho sẽ được giao một lần duy nhất khi khách mua gói.</p>
-<div class="admin-grid">
-<select id="pkgProductSelect"><option value="">Chọn sản phẩm</option></select>
+<h3>🎁 Quản lý gói & kho link</h3>
+<p class="muted">Link đã lưu sẽ nằm trong Supabase. Khi sửa tên/giá/thời hạn, link cũ và link đã giao vẫn được giữ nguyên.</p>
+<div class="admin-grid"><select id="pkgProductSelect"><option value="">Chọn sản phẩm</option></select></div>
+<details class="package-form-details" id="packageFormDetails" open>
+<summary id="packageFormTitle">＋ Thêm gói sản phẩm</summary>
+<div class="admin-grid package-form-grid">
 <input id="pkgName" placeholder="Tên gói (VIP / Premium)">
 <input id="pkgDuration" placeholder="Thời hạn (7 ngày / 30 ngày / Vĩnh viễn)">
 <input id="pkgPrice" type="number" min="0" placeholder="Giá gói (VNĐ)">
-<textarea id="pkgLinks" placeholder="Kho link giao hàng — mỗi dòng một link riêng"></textarea>
 <textarea id="pkgDescription" placeholder="Mô tả riêng của gói (không bắt buộc)"></textarea>
-<textarea id="mediaUrls" placeholder="Thư viện ảnh/video — mỗi dòng một URL ảnh hoặc video"></textarea>
-<input id="productWarranty" placeholder="Thông tin bảo hành (ví dụ: Bảo hành 7 ngày)">
-<textarea id="productLongDescription" placeholder="Mô tả chi tiết sản phẩm"></textarea>
+<textarea id="pkgLinks" placeholder="Dán link mới — mỗi dòng một link. Link cũ không bị xóa khi sửa."></textarea>
 </div>
-<div class="admin-actions"><button class="primary" id="savePackage" type="button">Lưu gói và kho link</button><button class="outline-btn" id="saveProductMedia" type="button">Lưu mô tả, bảo hành và media</button></div>
+<div class="admin-actions"><button class="primary" id="savePackage" type="button">Lưu gói</button><button class="outline-btn" id="cancelPackageEdit" type="button">Hủy chỉnh sửa</button></div>
+</details>
+<details class="package-media-details"><summary>＋ Mô tả sản phẩm, bảo hành & thư viện ảnh/video</summary>
+<div class="admin-grid" style="margin-top:12px"><textarea id="mediaUrls" placeholder="Thư viện ảnh/video — mỗi dòng một URL ảnh hoặc video"></textarea><input id="productWarranty" placeholder="Thông tin bảo hành (ví dụ: Bảo hành 7 ngày)"><textarea id="productLongDescription" placeholder="Mô tả chi tiết sản phẩm"></textarea></div>
+<button class="outline-btn" id="saveProductMedia" type="button">Lưu mô tả, bảo hành và media</button>
+</details>
 <p class="status" id="packageAdminStatus"></p><div id="packageAdminList"></div>
 <details><summary>SQL tạo hệ thống nhiều gói và giao hàng tự động</summary><textarea id="packageSqlText" readonly style="width:100%;min-height:360px"></textarea><button class="outline-btn" type="button" id="copyPackageSql">Sao chép SQL</button></details>
 </div>
@@ -512,7 +527,7 @@ begin
 end; $$;
 revoke all on function public.purchase_package_with_delivery(uuid) from public;
 grant execute on function public.purchase_package_with_delivery(uuid) to authenticated;`;
-let activeProduct=null,activePackage=null;
+let activeProduct=null,activePackage=null,editingPackageId=null;
 function status(t){$id('packageAdminStatus').textContent=t||''}
 function safe(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function refreshProductSelect(){
@@ -621,31 +636,60 @@ $id('detailBuy').onclick=async()=>{
   if(b.dataset.completed==='1'){b.disabled=true;b.textContent='Đã mua thành công';}
  }
 };
-$id('pkgProductSelect')?.addEventListener('change',async()=>{
+async function loadPackageAdminList(){
  const pid=$id('pkgProductSelect').value;if(!pid){$id('packageAdminList').innerHTML='';return}
- const {data,error}=await client.from('product_packages').select('id,name,duration,price').eq('product_id',pid).order('created_at');
- if(error){status(error.message);return}
- $id('packageAdminList').innerHTML=(data||[]).map(x=>`<div class="cart-line"><span><b>${safe(x.name)}</b> · ${safe(x.duration)} · ${Number(x.price).toLocaleString('vi-VN')} ₫</span><button class="danger" data-del-package="${x.id}">Xóa gói</button></div>`).join('')||'<p class="muted">Chưa có gói.</p>';
+ const {data,error}=await client.from('product_packages').select('id,name,duration,price,description,active').eq('product_id',pid).order('created_at');
+ if(error){status('Không tải được danh sách gói: '+error.message);return}
+ const rows=data||[];
+ const counts=await Promise.all(rows.map(async x=>{
+  const q=await client.from('package_delivery_links').select('id,sold_at',{count:'exact'}).eq('package_id',x.id);
+  return {id:x.id,total:q.count??(q.data||[]).length,available:(q.data||[]).filter(z=>!z.sold_at).length,error:q.error};
+ }));
+ $id('packageAdminList').innerHTML=rows.map(x=>{const c=counts.find(z=>z.id===x.id)||{};return `<div class="package-row"><div class="package-row-info"><b>${safe(x.name)}</b> · ${safe(x.duration)} · ${Number(x.price).toLocaleString('vi-VN')} ₫<small>${x.active===false?'Đang tắt':'Đang bán'} · Link còn: ${c.available??'—'} · Tổng link: ${c.total??'—'}</small></div><div class="package-row-actions"><button class="outline-btn" data-edit-package="${x.id}">Sửa gói</button><button class="danger" data-del-package="${x.id}">Xóa gói</button></div></div>`}).join('')||'<p class="muted">Chưa có gói.</p>';
+}
+$id('pkgProductSelect')?.addEventListener('change',loadPackageAdminList);
+function resetPackageForm(){editingPackageId=null;['pkgName','pkgDuration','pkgPrice','pkgLinks','pkgDescription'].forEach(x=>$id(x).value='');$id('packageFormTitle').textContent='＋ Thêm gói sản phẩm';$id('savePackage').textContent='Lưu gói';$id('cancelPackageEdit').style.display='none';}
+$id('cancelPackageEdit')?.addEventListener('click',()=>{resetPackageForm();status('Đã hủy chỉnh sửa. Link trong kho không thay đổi.');});
+$id('packageAdminList')?.addEventListener('click',async e=>{
+ const edit=e.target.closest('[data-edit-package]'),del=e.target.closest('[data-del-package]');
+ if(edit){
+  const {data,error}=await client.from('product_packages').select('id,name,duration,price,description').eq('id',edit.dataset.editPackage).maybeSingle();
+  if(error||!data){status('Không tải được gói để sửa: '+(error?.message||'Không tìm thấy'));return}
+  editingPackageId=data.id;$id('pkgName').value=data.name||'';$id('pkgDuration').value=data.duration||'';$id('pkgPrice').value=data.price??0;$id('pkgDescription').value=data.description||'';$id('pkgLinks').value='';
+  $id('packageFormTitle').textContent='✏️ Chỉnh sửa gói · Link đã có được giữ nguyên';$id('savePackage').textContent='Lưu thay đổi + thêm link mới';$id('cancelPackageEdit').style.display='inline-block';$id('packageFormDetails').open=true;$id('packageFormDetails').scrollIntoView({behavior:'smooth',block:'center'});return;
+ }
+ if(del){if(!confirm('Xóa gói này và toàn bộ link kho chưa giao? Các đơn hàng đã giao vẫn được giữ trong lịch sử.'))return;
+  const {error}=await client.from('product_packages').delete().eq('id',del.dataset.delPackage);
+  status(error?'Xóa thất bại: '+error.message:'Đã xóa gói.');await loadPackageAdminList();if(editingPackageId===del.dataset.delPackage)resetPackageForm();
+ }
 });
 $id('savePackage')?.addEventListener('click',async()=>{
  if(!isAdmin){status('Bạn không có quyền quản trị');return}
- const pid=$id('pkgProductSelect').value,name=$id('pkgName').value.trim(),duration=$id('pkgDuration').value.trim(),price=Number($id('pkgPrice').value),links=$id('pkgLinks').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- if(!pid||!name||!duration||!Number.isSafeInteger(price)||price<0||!links.length){status('Nhập sản phẩm, tên gói, thời hạn, giá và ít nhất một link giao hàng.');return}
+ const pid=$id('pkgProductSelect').value,name=$id('pkgName').value.trim(),duration=$id('pkgDuration').value.trim(),price=Number($id('pkgPrice').value),links=uniqueDeliveryLinks($id('pkgLinks').value);
+ if(!pid||!name||!duration||!Number.isSafeInteger(price)||price<0){status('Nhập sản phẩm, tên gói, thời hạn và giá hợp lệ.');return}
  try{
   const check=await client.from('products').select('id,name').eq('id',pid).maybeSingle();
   if(check.error)throw new Error('Không kiểm tra được sản phẩm trong Supabase: '+check.error.message);
-  if(!check.data)throw new Error('ID sản phẩm '+pid+' không tồn tại trong bảng products. Hãy tải lại danh sách và chọn sản phẩm có ID từ Supabase.');
-  const q=await client.from('product_packages').insert({product_id:check.data.id,name,duration,price,description:$id('pkgDescription').value.trim()}).select('id').single();if(q.error)throw q.error;
-  const rows=links.map(url=>({package_id:q.data.id,url}));
-  const r=await client.from('package_delivery_links').insert(rows);if(r.error)throw r.error;
-  status(`Đã tạo gói và nạp ${links.length} link vào kho.`);['pkgName','pkgDuration','pkgPrice','pkgLinks','pkgDescription'].forEach(x=>$id(x).value='');$id('pkgProductSelect').dispatchEvent(new Event('change'));
+  if(!check.data)throw new Error('Sản phẩm không còn tồn tại trong Supabase. Hãy tải lại danh sách.');
+  let packageId=editingPackageId;
+  if(packageId){
+   const q=await client.from('product_packages').update({name,duration,price,description:$id('pkgDescription').value.trim()}).eq('id',packageId).eq('product_id',pid).select('id').maybeSingle();
+   if(q.error)throw q.error;if(!q.data)throw new Error('Không tìm thấy gói để cập nhật.');
+  }else{
+   const q=await client.from('product_packages').insert({product_id:check.data.id,name,duration,price,description:$id('pkgDescription').value.trim()}).select('id').single();if(q.error)throw q.error;packageId=q.data.id;
+  }
+  // Append-only: never delete or overwrite old links. Sold links remain untouched.
+  let added=0;
+  if(links.length){
+   const existing=await client.from('package_delivery_links').select('url').eq('package_id',packageId);
+   if(existing.error)throw existing.error;
+   const seen=new Set((existing.data||[]).map(x=>String(x.url||'').trim().toLowerCase()));
+   const fresh=links.filter(url=>!seen.has(url.toLowerCase()));
+   if(fresh.length){const r=await client.from('package_delivery_links').insert(fresh.map(url=>({package_id:packageId,url})));if(r.error)throw r.error;added=fresh.length;}
+  }
+  status(editingPackageId?`Đã cập nhật gói. Thêm ${added} link mới; link cũ và link đã giao được giữ nguyên.`:`Đã tạo gói. Đã lưu ${added} link mới vào Supabase.`);
+  resetPackageForm();await loadPackageAdminList();
  }catch(e){status('Lưu gói thất bại: '+e.message)}
-});
-$id('packageAdminList')?.addEventListener('click',async e=>{
- const b=e.target.closest('[data-del-package]');if(!b)return;
- if(!confirm('Xóa gói này và toàn bộ link tồn kho chưa giao?'))return;
- const {error}=await client.from('product_packages').delete().eq('id',b.dataset.delPackage);
- status(error?'Xóa thất bại: '+error.message:'Đã xóa gói.');$id('pkgProductSelect').dispatchEvent(new Event('change'));
 });
 $id('saveProductMedia')?.addEventListener('click',async()=>{
  if(!isAdmin){status('Bạn không có quyền quản trị');return}
