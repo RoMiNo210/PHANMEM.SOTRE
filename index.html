@@ -483,7 +483,15 @@ function safe(t){return String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 async function refreshProductSelect(){
  if(!client || !isAdmin)return;
  const sel=$id('pkgProductSelect'); if(!sel)return;
- sel.innerHTML='<option value="">Chọn sản phẩm</option>'+products.map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
+ sel.innerHTML='<option value="">Đang tải sản phẩm từ Supabase...</option>';
+ try{
+  // Chỉ dùng ID thật lấy trực tiếp từ bảng products, tuyệt đối không dùng ID mẫu trong catalog HTML.
+  const {data,error}=await client.from('products').select('id,name').order('id');
+  if(error)throw error;
+  const rows=data||[];
+  if(!rows.length){sel.innerHTML='<option value="">Chưa có sản phẩm trong Supabase</option>';status('Chưa có sản phẩm thật trong bảng products. Hãy thêm/lưu sản phẩm ở Quản lý sản phẩm trước khi tạo gói.');return;}
+  sel.innerHTML='<option value="">Chọn sản phẩm trong cơ sở dữ liệu</option>'+rows.map(p=>`<option value="${String(p.id)}">${safe(p.name)} · ID ${safe(p.id)}</option>`).join('');
+ }catch(e){sel.innerHTML='<option value="">Không tải được sản phẩm</option>';status('Không đọc được bảng products: '+(e.message||e));}
 }
 async function openDetail(id){
  const p=products.find(x=>Number(x.id)===Number(id)); if(!p)return; activeProduct=p;activePackage=null;
@@ -497,6 +505,8 @@ async function openDetail(id){
  $id('detailPrice').textContent='';
  $id('detailStatus').textContent='';
  $id('detailBuy').disabled=true;
+ $id('detailBuy').textContent='Xác nhận mua gói này';
+ delete $id('detailBuy').dataset.completed; delete $id('detailBuy').dataset.processing;
  $id('productDetailModal').classList.add('show');
  try{
    const [m,pk]=await Promise.all([
@@ -515,18 +525,65 @@ async function openDetail(id){
 document.addEventListener('click',e=>{
  const b=e.target.closest('[data-add]'); if(b){e.preventDefault();e.stopImmediatePropagation();openDetail(Number(b.dataset.add));}
 },true);
+// Ensure both purchase-related dialogs can always be dismissed on mobile.
+// The dialogs are appended late in this file, after the original close handlers.
+function closeRominoModal(modalId){
+ const modal=document.getElementById(modalId);
+ if(!modal)return;
+ modal.classList.remove('show');
+ modal.setAttribute('aria-hidden','true');
+ if(modalId==='productDetailModal'){
+   activePackage=null;
+   activeProduct=null;
+ }
+}
+['productDetailModal','buyNowModal'].forEach(modalId=>{
+ const modal=document.getElementById(modalId);
+ if(!modal)return;
+ modal.setAttribute('role','dialog');
+ modal.setAttribute('aria-modal','true');
+ modal.querySelectorAll('[data-close="'+modalId+'"]').forEach(btn=>{
+   btn.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();closeRominoModal(modalId);});
+ });
+ modal.addEventListener('click',ev=>{
+   if(ev.target===modal)closeRominoModal(modalId);
+ });
+});
+document.addEventListener('keydown',ev=>{
+ if(ev.key!=='Escape')return;
+ ['productDetailModal','buyNowModal'].forEach(id=>{
+   const modal=document.getElementById(id);
+   if(modal?.classList.contains('show'))closeRominoModal(id);
+ });
+});
+
 $id('detailBuy').onclick=async()=>{
- if(!activePackage)return;
- if(!user){$id('detailStatus').textContent='Vui lòng đăng nhập trước khi mua.';return}
- const b=$id('detailBuy');b.disabled=true;$id('detailStatus').textContent='Đang kiểm tra số dư và kho giao hàng...';
+ if(!activePackage){$id('detailStatus').textContent='Bạn hãy chọn một gói trước khi mua.';return}
+ if(!client||!user){$id('detailStatus').textContent='Vui lòng đăng nhập trước khi mua.';return}
+ const selected=activePackage;
+ const amount=Number(selected.price)||0;
+ if(!Number.isFinite(amount)||amount<0){$id('detailStatus').textContent='Giá gói không hợp lệ. Vui lòng báo quản trị viên.';return}
+ if(!confirm(`XÁC NHẬN MUA\nSản phẩm: ${activeProduct?.name||'Sản phẩm'}\nGói: ${selected.name}\nThời hạn: ${selected.duration}\nGiá: ${amount.toLocaleString('vi-VN')} ₫\n\nBạn có chắc chắn muốn mua và thanh toán không?`))return;
+ const b=$id('detailBuy');
+ if(b.dataset.processing==='1')return;
+ b.dataset.processing='1';b.disabled=true;b.textContent='Đang xử lý mua hàng...';
+ $id('detailStatus').textContent='Đang kiểm tra số dư và kho giao hàng. Vui lòng không đóng trang...';
  try{
-  const {data,error}=await client.rpc('purchase_package_with_delivery',{p_package_id:activePackage.id});
-  if(error)throw error;if(data?.ok===false)throw new Error(data.message||'Mua hàng thất bại');
+  const {data,error}=await client.rpc('purchase_package_with_delivery',{p_package_id:selected.id});
+  if(error)throw error;
+  if(data?.ok===false)throw new Error(data.message||'Mua hàng thất bại');
+  if(!data||!data.delivery_url)throw new Error('Máy chủ chưa trả về link giao hàng. Hãy kiểm tra lịch sử đơn hàng trước khi thử mua lại.');
   await refreshAccount();
-  $id('detailStatus').textContent=`MUA THÀNH CÔNG · ${data.package_name} · ${data.duration}\nĐã trừ: ${Number(data.amount).toLocaleString('vi-VN')} ₫\nLink giao hàng:\n${data.delivery_url}\nSố dư còn lại: ${Number(walletBalance).toLocaleString('vi-VN')} ₫`;
+  $id('detailStatus').textContent=`MUA THÀNH CÔNG · ${data.package_name||selected.name} · ${data.duration||selected.duration}\nĐã trừ: ${Number(data.amount??amount).toLocaleString('vi-VN')} ₫\nLink giao hàng:\n${data.delivery_url}\nSố dư còn lại: ${Number(walletBalance).toLocaleString('vi-VN')} ₫`;
   b.textContent='Đã mua thành công';
- }catch(e){$id('detailStatus').textContent=e.message||'Không thể hoàn tất đơn hàng';}
- finally{b.disabled=false}
+  b.dataset.completed='1';
+ }catch(e){
+  $id('detailStatus').textContent=e.message||'Không thể hoàn tất đơn hàng';
+  b.disabled=false;b.textContent='Thử xác nhận mua lại';
+ }finally{
+  delete b.dataset.processing;
+  if(b.dataset.completed==='1'){b.disabled=true;b.textContent='Đã mua thành công';}
+ }
 };
 $id('pkgProductSelect')?.addEventListener('change',async()=>{
  const pid=$id('pkgProductSelect').value;if(!pid){$id('packageAdminList').innerHTML='';return}
@@ -539,7 +596,10 @@ $id('savePackage')?.addEventListener('click',async()=>{
  const pid=$id('pkgProductSelect').value,name=$id('pkgName').value.trim(),duration=$id('pkgDuration').value.trim(),price=Number($id('pkgPrice').value),links=$id('pkgLinks').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  if(!pid||!name||!duration||!Number.isSafeInteger(price)||price<0||!links.length){status('Nhập sản phẩm, tên gói, thời hạn, giá và ít nhất một link giao hàng.');return}
  try{
-  const q=await client.from('product_packages').insert({product_id:Number(pid),name,duration,price,description:$id('pkgDescription').value.trim()}).select('id').single();if(q.error)throw q.error;
+  const check=await client.from('products').select('id,name').eq('id',pid).maybeSingle();
+  if(check.error)throw new Error('Không kiểm tra được sản phẩm trong Supabase: '+check.error.message);
+  if(!check.data)throw new Error('ID sản phẩm '+pid+' không tồn tại trong bảng products. Hãy tải lại danh sách và chọn sản phẩm có ID từ Supabase.');
+  const q=await client.from('product_packages').insert({product_id:check.data.id,name,duration,price,description:$id('pkgDescription').value.trim()}).select('id').single();if(q.error)throw q.error;
   const rows=links.map(url=>({package_id:q.data.id,url}));
   const r=await client.from('package_delivery_links').insert(rows);if(r.error)throw r.error;
   status(`Đã tạo gói và nạp ${links.length} link vào kho.`);['pkgName','pkgDuration','pkgPrice','pkgLinks','pkgDescription'].forEach(x=>$id(x).value='');$id('pkgProductSelect').dispatchEvent(new Event('change'));
